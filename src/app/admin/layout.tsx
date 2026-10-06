@@ -4,7 +4,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, LogoutButton } from "@/components";
-import { Shield, Users, UserCheck, LayoutDashboard } from "lucide-react";
+import { AdminNav } from "@/components/AdminNav";
+import { Shield } from "lucide-react";
 
 export default async function AdminLayout({
   children,
@@ -82,38 +83,9 @@ export default async function AdminLayout({
           </div>
         </div>
 
-        {/* Admin Navigation Bar with Pending Badge */}
+        {/* Admin Navigation Bar */}
         <div className="border-t border-border/70 bg-white">
-          <nav className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-1 sm:gap-2 overflow-x-auto py-2">
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted hover:text-primary hover:bg-soft transition-colors"
-            >
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              <span>Overview</span>
-            </Link>
-
-            <Link
-              href="/admin/students"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted hover:text-primary hover:bg-soft transition-colors"
-            >
-              <Users className="h-3.5 w-3.5" />
-              <span>Students & Admins</span>
-            </Link>
-
-            <Link
-              href="/admin/approvals"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted hover:text-primary hover:bg-soft transition-colors"
-            >
-              <UserCheck className="h-3.5 w-3.5" />
-              <span>Approvals</span>
-              {typeof pendingCount === "number" && pendingCount > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-late text-white shadow-2xs">
-                  {pendingCount}
-                </span>
-              )}
-            </Link>
-          </nav>
+          <AdminNav pendingCount={pendingCount || 0} />
         </div>
       </header>
 

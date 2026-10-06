@@ -6,3 +6,6 @@ export * from "./SuccessPopup";
 export * from "./StudentNav";
 export * from "./StudentTodayCard";
 export * from "./AdminAttendanceConsole";
+export * from "./AdminNav";
+export * from "./AdminWeeklyMatrix";
+export * from "./AdminStudentsDirectory";
