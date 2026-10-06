@@ -41,8 +41,17 @@ export default async function ScanPage({
     .eq("id", user.id)
     .single();
 
+  if (!profile || !profile.is_active) {
+    redirect("/login?role=student");
+  }
+
+  // Pending and rejected students cannot scan
+  if (profile.role === "student" && (profile.status === "pending" || profile.status === "rejected")) {
+    redirect("/pending");
+  }
+
   // 3. Admin fallback: Admins cannot record student attendance through scanner link
-  if (profile?.role === "admin") {
+  if (profile.role === "admin") {
     return (
       <div className="min-h-screen bg-[#F5F8FE] flex flex-col justify-between p-4 sm:p-6">
         <header className="max-w-md mx-auto w-full py-4 flex items-center justify-between">

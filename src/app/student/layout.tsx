@@ -52,66 +52,9 @@ export default async function StudentLayout({
 
   const firstName = profile.full_name?.trim().split(" ")[0] || "Student";
 
-  // 3. Pending and rejected students see ONLY a status screen (with logout)
+  // 3. Pending and rejected students are redirected to /pending
   if (profile.status === "pending" || profile.status === "rejected") {
-    const isPending = profile.status === "pending";
-
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between">
-        <header className="sticky top-0 z-40 bg-white border-b border-[#DDE3EE] shadow-xs">
-          <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
-            <Image
-              src="/images/bitnox-logo.png"
-              alt="Bitnox Attendance"
-              width={120}
-              height={30}
-              priority
-              className="h-7 w-auto object-contain"
-            />
-            <LogoutButton />
-          </div>
-        </header>
-
-        <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
-          <Card className="bg-white text-center shadow-xs border border-[#DDE3EE]">
-            <CardContent className="p-6 space-y-4">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#F1F4FB] text-[#0B1B3F]">
-                {isPending ? (
-                  <Clock className="h-7 w-7 text-[#F59E0B] animate-pulse" />
-                ) : (
-                  <AlertOctagon className="h-7 w-7 text-[#EF4444]" />
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <h2 className="text-xl font-bold text-[#0B1B3F]">
-                  {isPending ? "Enrollment Pending Approval" : "Enrollment Not Approved"}
-                </h2>
-                <p className="text-xs text-[#5E6C87] leading-relaxed px-1">
-                  {isPending
-                    ? `Hello ${firstName}, your account is waiting for administrator approval. Once approved, your attendance dashboard and QR scanner will activate.`
-                    : `Hello ${firstName}, your student enrollment request was not approved. Please speak with the Bitnox administration at the hub.`}
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <Badge variant={isPending ? "late" : "absent"} withDot>
-                  {isPending ? "Status: Pending Review" : "Status: Rejected"}
-                </Badge>
-              </div>
-
-              <div className="pt-4 border-t border-[#DDE3EE] flex justify-center">
-                <LogoutButton />
-              </div>
-            </CardContent>
-          </Card>
-        </main>
-
-        <footer className="border-t border-[#DDE3EE] bg-[#F5F8FE] py-4 text-center text-xs text-[#5E6C87]">
-          Bitnox Attendance • Abeokuta Hub
-        </footer>
-      </div>
-    );
+    redirect("/pending");
   }
 
   // 4. Compute Gate State for Approved Students

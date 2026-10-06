@@ -81,33 +81,18 @@ export async function loginAction(
     };
   }
 
-  // 4. Check enrollment status for students
-  if (profile.role === "student") {
-    if (profile.status === "pending") {
-      await supabase.auth.signOut();
-      return {
-        error:
-          "Your enrollment is pending administrator approval. Please contact Bitnox administration to activate your account.",
-        timestamp: Date.now(),
-      };
-    }
-    if (profile.status === "rejected") {
-      await supabase.auth.signOut();
-      return {
-        error:
-          "Your enrollment request was not approved. Please contact Bitnox administration.",
-        timestamp: Date.now(),
-      };
-    }
-  }
-
-  // 5. Check if account's role matches chosen entrance
+  // 4. Check if account's role matches chosen entrance
   if (profile.role !== expectedRole) {
     await supabase.auth.signOut();
     return {
       error: `This account is not a ${expectedRole} account.`,
       timestamp: Date.now(),
     };
+  }
+
+  // 5. Pending and rejected students are redirected to /pending
+  if (profile.role === "student" && (profile.status === "pending" || profile.status === "rejected")) {
+    redirect("/pending");
   }
 
   // 6. Safe redirection
