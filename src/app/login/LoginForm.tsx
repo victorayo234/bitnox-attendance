@@ -6,13 +6,14 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { loginAction } from "@/lib/actions/auth";
 import { Button, Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle, ShieldCheck, GraduationCap, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle, ShieldCheck, GraduationCap, UserPlus, CheckCircle2 } from "lucide-react";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const rawRole = searchParams.get("role");
   const role = rawRole === "admin" ? "admin" : "student";
   const nextParam = searchParams.get("next") || "";
+  const successMessage = searchParams.get("message") || "";
 
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -75,6 +76,17 @@ export function LoginForm() {
         </CardHeader>
 
         <CardContent className="pt-4">
+          {/* Success Banner */}
+          {successMessage && !errorMessage && (
+            <div
+              className="mb-4 flex items-start gap-2.5 rounded-xl border border-present/30 bg-present/10 p-3 text-xs text-present animate-in fade-in-50"
+              role="status"
+            >
+              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-present" />
+              <p className="leading-tight font-medium text-present">{successMessage}</p>
+            </div>
+          )}
+
           {/* Error Banner */}
           {errorMessage && (
             <div
@@ -148,6 +160,16 @@ export function LoginForm() {
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* Forgot Password Link */}
+            <div className="flex justify-end pt-0.5">
+              <Link
+                href={`/forgot-password?role=${role}`}
+                className="text-xs text-muted hover:text-primary transition-colors font-medium"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             {/* Submit Button */}

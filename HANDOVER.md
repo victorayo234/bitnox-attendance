@@ -88,6 +88,33 @@ If a student leaves Bitnox or pauses their enrollment:
 4. To remove an admin, click **Remove admin** on their row.
    *(Note: The system mathematically prevents removing the last remaining admin, ensuring the hub is never locked out.)*
 
+### D. Forgotten Passwords & Self-Service Reset
+If a student or administrator forgets their password:
+
+1. **Self-Service Reset Flow**:
+   - The user goes to the login page (`/login`) and clicks **Forgot password?** under the password box.
+   - They enter their registered email address and click **Send Recovery Code**.
+   - A 6-digit OTP code is emailed to them.
+   - **The code is valid for 5 minutes** (with a live on-screen countdown).
+   - They enter the 6-digit code, enter a new password (minimum 8 characters), confirm it, and click **Update Password**.
+   - The password updates instantly, and the system securely logs them out and redirects them to the login screen with a green confirmation message: *"Password updated. Please log in."*
+   - If the code expires before submission, they can click **Resend code** (active after a 60-second cooldown).
+
+2. **Email Sender & SMTP Configuration**:
+   - The recovery email is delivered via your Supabase project SMTP provider.
+   - To configure or change the sender address to your company email (e.g., `notifications@bitnox.com`):
+     1. Open **[supabase.com](https://supabase.com) → Your Project → Authentication → Emails**.
+     2. Under **SMTP Settings**, toggle **Enable Custom SMTP** ON.
+     3. Enter your email provider credentials (Sender Email, Sender Name "Bitnox Attendance", SMTP Host, Port, Username, and Password).
+     4. Save changes. All future reset codes will send from your official company domain.
+
+3. **Emergency Admin Reset (If Email/Internet Fails)**:
+   - If a student has no access to their email inbox or SMTP is unreachable, an administrator can still set a temporary password directly:
+     1. Go to `/admin/students`.
+     2. Find the student and click **Reset password**.
+     3. Type a new temporary password (minimum 8 characters) and confirm.
+     4. Give the temporary password to the student to log in immediately.
+
 ---
 
 ## 4. Attendance QR Codes (`/admin/qr`)

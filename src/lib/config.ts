@@ -10,6 +10,9 @@ export const GATE_START = "08:00";
 export const LATE_AFTER = "11:59";
 export const CHECKOUT_OPENS = "12:00";
 
+// Self-service password recovery OTP expiry in minutes
+export const OTP_EXPIRY_MINUTES = 5;
+
 // Monday (1) to Friday (5) as standard JS/date-fns workday indices (0 = Sunday, 6 = Saturday)
 export const WORKDAYS = [1, 2, 3, 4, 5] as const;
 
