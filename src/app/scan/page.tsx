@@ -30,7 +30,7 @@ export default async function ScanPage({
   // If not logged in -> redirect to login preserving the code in `next`
   if (!user) {
     const nextPath = code ? `/scan?code=${encodeURIComponent(code)}` : "/scan";
-    redirect(`/login?role=student&next=${encodeURIComponent(nextPath)}`);
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   }
 
   // 2. Load user profile
