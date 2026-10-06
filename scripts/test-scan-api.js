@@ -24,6 +24,15 @@ const APP_URL = 'http://localhost:3000';
 const STUDENT_EMAIL = 'student@bitnox.qc';
 const STUDENT_PASSWORD = 'Password123!';
 
+const fs = require('fs');
+const path = require('path');
+
+const envContent = fs.readFileSync(path.resolve(__dirname, '../.env.local'), 'utf8');
+const qrInMatch = envContent.match(/QR_IN_SECRET=(.+)/);
+const qrOutMatch = envContent.match(/QR_OUT_SECRET=(.+)/);
+const QR_IN_SECRET = qrInMatch ? qrInMatch[1].trim() : 'bitnox-in-3e14bd4925d07bb6f099bcae0e9c8330';
+const QR_OUT_SECRET = qrOutMatch ? qrOutMatch[1].trim() : 'bitnox-out-5a68f52ee29ec63887bdf0b87eaae18a';
+
 // Helper to construct UTC timestamp for a specific Lagos time (Lagos is UTC+1)
 function makeLagosTime(dateStr, timeStr) {
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -103,7 +112,7 @@ async function runScanTests() {
   // --- TEST 2: OUT during gate (no check-in today, 09:00 Lagos) ---
   console.log('\n--- TEST 2: OUT Code During Gate Window (No Check-in) ---');
   const time0900 = makeLagosTime(TEST_DATE, '09:00:00');
-  const resOutGate = await callScanApi('https://attendance.bitnox.com/?code=bitnox-out-g00dby3', time0900);
+  const resOutGate = await callScanApi(`https://attendance.bitnox.com/?code=${QR_OUT_SECRET}`, time0900);
   assert(
     resOutGate.status === 403 && resOutGate.data.code === 'WRONG_CODE_NEED_CHECKIN',
     `OUT during gate returned 403 WRONG_CODE_NEED_CHECKIN: "${resOutGate.data.message}"`
@@ -112,7 +121,7 @@ async function runScanTests() {
   // --- TEST 3: Valid Check-In (08:15 Lagos) ---
   console.log('\n--- TEST 3: Valid Check-In Flow (08:15 AM) ---');
   const time0815 = makeLagosTime(TEST_DATE, '08:15:00');
-  const resValidIn = await callScanApi('https://attendance.bitnox.com/scan?code=bitnox-in-w3lc0m3', time0815);
+  const resValidIn = await callScanApi(`https://attendance.bitnox.com/scan?code=${QR_IN_SECRET}`, time0815);
   assert(
     resValidIn.status === 200 &&
       resValidIn.data.ok === true &&
@@ -125,7 +134,7 @@ async function runScanTests() {
   // --- TEST 4: Double Check-In ---
   console.log('\n--- TEST 4: Double Check-In Rejection ---');
   const time0835 = makeLagosTime(TEST_DATE, '08:35:00');
-  const resDoubleIn = await callScanApi('bitnox-in-w3lc0m3', time0835);
+  const resDoubleIn = await callScanApi(QR_IN_SECRET, time0835);
   assert(
     resDoubleIn.status === 409 && resDoubleIn.data.code === 'ALREADY_CHECKED_IN',
     `Double check-in returned 409 ALREADY_CHECKED_IN: "${resDoubleIn.data.message}"`
@@ -134,7 +143,7 @@ async function runScanTests() {
   // --- TEST 5: Check-Out Before Noon (11:30 Lagos) ---
   console.log('\n--- TEST 5: Check-Out Attempt Before 12:00 PM ---');
   const time1130 = makeLagosTime(TEST_DATE, '11:30:00');
-  const resEarlyOut = await callScanApi('bitnox-out-g00dby3', time1130);
+  const resEarlyOut = await callScanApi(QR_OUT_SECRET, time1130);
   assert(
     resEarlyOut.status === 403 && resEarlyOut.data.code === 'CHECKOUT_NOT_OPEN',
     `Check-out before noon returned 403 CHECKOUT_NOT_OPEN: "${resEarlyOut.data.message}"`
@@ -143,7 +152,7 @@ async function runScanTests() {
   // --- TEST 6: Valid Check-Out (13:00 Lagos) ---
   console.log('\n--- TEST 6: Valid Check-Out Flow (01:00 PM) ---');
   const time1300 = makeLagosTime(TEST_DATE, '13:00:00');
-  const resValidOut = await callScanApi('bitnox-out-g00dby3', time1300);
+  const resValidOut = await callScanApi(QR_OUT_SECRET, time1300);
   assert(
     resValidOut.status === 200 &&
       resValidOut.data.ok === true &&
@@ -155,7 +164,7 @@ async function runScanTests() {
   // --- TEST 7: Double Check-Out ---
   console.log('\n--- TEST 7: Double Check-Out Rejection ---');
   const time1315 = makeLagosTime(TEST_DATE, '13:15:00');
-  const resDoubleOut = await callScanApi('bitnox-out-g00dby3', time1315);
+  const resDoubleOut = await callScanApi(QR_OUT_SECRET, time1315);
   assert(
     resDoubleOut.status === 409 && resDoubleOut.data.code === 'ALREADY_CHECKED_OUT',
     `Double check-out returned 409 ALREADY_CHECKED_OUT: "${resDoubleOut.data.message}"`
