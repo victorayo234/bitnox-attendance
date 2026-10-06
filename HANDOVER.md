@@ -10,10 +10,9 @@ The system operates strictly on the official Lagos clock:
 
 1. **Check-in Gate (08:00 AM – 12:00 PM)**:
    - When students open the web app, they see a full-screen screen requiring them to scan the **CHECK IN** QR code. They cannot enter the dashboard until they scan.
-   - **On Time (Present)**: Scanning at or before **08:30 AM** marks the student **Present** (green).
-   - **Late**: Scanning between **08:31 AM and 12:00 PM** marks the student **Late** (amber).
+   - **On Time (Present)**: Scanning at or before **11:59 AM** marks the student **Present** (green).
 2. **After 12:00 PM (Late Check-in)**:
-   - The full-screen pop-up clears, but late check-in remains available. Any check-in after 12:00 PM is saved as **Late**.
+   - The full-screen pop-up clears, but late check-in remains available. Any check-in from **12:00 PM onward** is saved as **Late** (amber).
 3. **Check-out Window (12:00 PM onward)**:
    - Check-out opens at **12:00 PM**.
    - Students must have checked in earlier that day, and must scan the **CHECK OUT** QR code.

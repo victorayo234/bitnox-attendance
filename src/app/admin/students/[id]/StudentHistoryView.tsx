@@ -285,7 +285,7 @@ export function StudentHistoryView({
             Late Days
           </span>
           <div className="text-2xl font-extrabold text-[#F59E0B] mt-1">{totalLate}</div>
-          <p className="text-[10px] text-[#5E6C87] mt-0.5">Past 08:30 AM</p>
+          <p className="text-[10px] text-[#5E6C87] mt-0.5">12:00 PM or later</p>
         </Card>
 
         <Card className="p-4 bg-red-50/50 border border-red-200 rounded-2xl shadow-xs">

@@ -166,7 +166,7 @@ describe("Attendance Rules Engine", () => {
         expect(res.status).toBe("present");
       });
 
-      it("allows check-in at boundary 08:30:00 with status 'present'", () => {
+      it("allows check-in at 08:30:00 with status 'present'", () => {
         const time = lagosTime(WORKDAY_DATE, "08:30:00");
         const res = evaluateScan(time, "IN", null);
         expect(res.allowed).toBe(true);
@@ -174,20 +174,20 @@ describe("Attendance Rules Engine", () => {
         expect(res.status).toBe("present");
       });
 
-      it("allows check-in at boundary 08:30:01 with status 'late'", () => {
-        const time = lagosTime(WORKDAY_DATE, "08:30:01");
-        const res = evaluateScan(time, "IN", null);
-        expect(res.allowed).toBe(true);
-        expect(res.code).toBe("OK");
-        expect(res.status).toBe("late");
-      });
-
-      it("allows check-in at boundary 11:59 with status 'late'", () => {
+      it("allows check-in at boundary 11:59:00 with status 'present'", () => {
         const time = lagosTime(WORKDAY_DATE, "11:59:00");
         const res = evaluateScan(time, "IN", null);
         expect(res.allowed).toBe(true);
         expect(res.code).toBe("OK");
-        expect(res.status).toBe("late");
+        expect(res.status).toBe("present");
+      });
+
+      it("allows check-in at boundary 11:59:59 with status 'present'", () => {
+        const time = lagosTime(WORKDAY_DATE, "11:59:59");
+        const res = evaluateScan(time, "IN", null);
+        expect(res.allowed).toBe(true);
+        expect(res.code).toBe("OK");
+        expect(res.status).toBe("present");
       });
 
       it("allows check-in at boundary 12:00 with status 'late'", () => {

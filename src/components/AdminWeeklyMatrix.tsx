@@ -131,7 +131,7 @@ export function AdminWeeklyMatrix({ data }: AdminWeeklyMatrixProps) {
           <div className="text-2xl font-extrabold text-[#F59E0B] mt-1">
             {data.overallStats.totalLate}
           </div>
-          <p className="text-[11px] text-[#5E6C87] mt-0.5">After 08:30 AM</p>
+          <p className="text-[11px] text-[#5E6C87] mt-0.5">12:00 PM or later</p>
         </Card>
 
         <Card className="bg-white border border-[#DDE3EE] p-4 rounded-2xl shadow-xs">

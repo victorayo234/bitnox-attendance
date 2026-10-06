@@ -126,7 +126,7 @@ export function StudentTodayCard({
                 You haven&apos;t checked in today
               </h4>
               <p className="text-xs text-amber-800 leading-relaxed">
-                Normal check-in closed at 08:30 a.m., but attendance is still open and will be marked <strong>Late</strong>.
+                Normal check-in closed at 11:59 a.m., but attendance is still open and will be marked <strong>Late</strong>.
               </p>
               <div className="pt-2">
                 <Button

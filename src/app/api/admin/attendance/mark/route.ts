@@ -169,12 +169,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 8. Compute status with late rule (late if check-in after 08:30 Lagos)
+  // 8. Compute status with late rule (late if check-in from 12:00 PM onward Lagos)
   let status: "present" | "late";
   if (action === "check_in") {
     const seconds = lagosSecondsOfDay(targetDate);
-    const LATE_CUTOFF_SECONDS = 8 * 3600 + 30 * 60; // 08:30:00 (30,600s)
-    status = seconds > LATE_CUTOFF_SECONDS ? "late" : "present";
+    const NOON_SECONDS = 12 * 3600; // 12:00:00 (43,200s)
+    status = seconds >= NOON_SECONDS ? "late" : "present";
   } else {
     status = existingRow?.status || "present";
   }

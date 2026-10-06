@@ -7,7 +7,7 @@
 export const TIMEZONE = "Africa/Lagos";
 
 export const GATE_START = "08:00";
-export const LATE_AFTER = "08:30";
+export const LATE_AFTER = "11:59";
 export const CHECKOUT_OPENS = "12:00";
 
 // Monday (1) to Friday (5) as standard JS/date-fns workday indices (0 = Sunday, 6 = Saturday)

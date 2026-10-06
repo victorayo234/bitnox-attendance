@@ -158,8 +158,7 @@ export function evaluateScan(
   const hasCheckOut = Boolean(todayRecord?.check_out_at);
   const seconds = lagosSecondsOfDay(now);
 
-  const LATE_CUTOFF_SECONDS = 8 * 3600 + 30 * 60; // 08:30:00 (30,600s)
-  const NOON_SECONDS = 12 * 3600;                 // 12:00:00 (43,200s)
+  const NOON_SECONDS = 12 * 3600; // 12:00:00 (43,200s)
 
   if (scanType === "IN") {
     if (hasCheckIn) {
@@ -170,9 +169,9 @@ export function evaluateScan(
       };
     }
 
-    // Check-in after 08:30 is late; at or before 08:30 is present.
+    // Check-in up until 11:59 AM is present; check-in from 12:00 PM onward is late.
     // Check-in before 08:00 is allowed (present).
-    const isLate = seconds > LATE_CUTOFF_SECONDS;
+    const isLate = seconds >= NOON_SECONDS;
     const status = isLate ? "late" : "present";
 
     return {
