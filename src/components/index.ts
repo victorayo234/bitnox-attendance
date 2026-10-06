@@ -5,3 +5,4 @@ export * from "./ScanGate";
 export * from "./SuccessPopup";
 export * from "./StudentNav";
 export * from "./StudentTodayCard";
+export * from "./AdminAttendanceConsole";
