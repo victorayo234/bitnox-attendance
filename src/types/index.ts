@@ -5,6 +5,8 @@
 
 export type UserRole = "student" | "admin";
 
+export type EnrollmentStatus = "pending" | "approved" | "rejected";
+
 export type AttendanceStatus = "present" | "late" | "absent";
 
 export interface Profile {
@@ -12,6 +14,8 @@ export interface Profile {
   email: string;
   full_name: string;
   role: UserRole;
+  status: EnrollmentStatus;
+  is_active: boolean;
   avatar_url?: string | null;
   created_at: string;
   updated_at?: string;
@@ -21,11 +25,11 @@ export interface AttendanceRecord {
   id: string;
   student_id: string;
   attendance_date: string; // YYYY-MM-DD in Africa/Lagos
-  check_in_time: string | null; // ISO timestamp
-  check_out_time: string | null; // ISO timestamp
+  check_in_at: string | null; // ISO timestamp
+  check_out_at: string | null; // ISO timestamp
   status: AttendanceStatus;
+  marked_by_admin: boolean;
   created_at: string;
-  updated_at?: string;
   profile?: Profile;
 }
 

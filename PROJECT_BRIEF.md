@@ -8,7 +8,9 @@ BRAND (match Bitnox exactly)
 - Style: pill-shaped buttons, rounded cards (16px) with thin #DDE3EE borders, outline Lucide icons, generous white space, clean and minimal. Use the attached logo (save to /public/images/bitnox-logo.png) in headers and on landing/login pages. Use the attached screenshot only as visual reference.
 
 ROLES
-- Two roles: student and admin. One website. Landing page has two buttons: Student Login and Admin Login. Both use the same login system. Role comes from the profiles table. No public sign-up. Admin creates student accounts.
+- Two roles: student and admin. One website. Landing page has two buttons: Student Login and Admin Login. Both use the same login system. Role comes from the profiles table.
+- Student Sign-Up: Public student self-registration is accessible only from the Student Login page ("Don't have an account? Sign up"). The server and database ALWAYS force role='student' and status='pending', ignoring any client-provided role or status. New students cannot access the student dashboard or scanner until an administrator approves their enrollment.
+- Admin Protection: There is NO admin sign-up anywhere in the app and the Admin Login page contains no sign-up link. The initial admin is created directly in Supabase. Subsequent admins can only be promoted from approved students by an existing admin through a server-side action. Admins cannot modify their own role, and the system prevents demoting the last remaining active admin.
 
 DAILY RULES (all times Africa/Lagos, decided on the SERVER clock, never the phone)
 - Check-in window gate: from 08:00 to 12:00, a student with no check-in today sees a full-screen, non-dismissible pop-up "Scan your attendance" and cannot reach the dashboard until they scan the CHECK IN code.

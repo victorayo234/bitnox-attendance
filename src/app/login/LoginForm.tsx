@@ -4,9 +4,9 @@ import React, { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { loginAction, type LoginActionState } from "@/lib/actions/auth";
+import { loginAction } from "@/lib/actions/auth";
 import { Button, Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle, ShieldCheck, GraduationCap } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle, ShieldCheck, GraduationCap, UserPlus } from "lucide-react";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -164,6 +164,22 @@ export function LoginForm() {
               </Button>
             </div>
           </form>
+
+          {/* Student-only Sign-up link: NO sign-up link for Admin */}
+          {isStudent && (
+            <div className="mt-4 text-center">
+              <p className="text-xs text-muted">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href="/signup"
+                  className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  <UserPlus className="h-3 w-3" />
+                  Sign up
+                </Link>
+              </p>
+            </div>
+          )}
 
           {/* Switch Role Link */}
           <div className="mt-5 border-t border-border pt-4 text-center">

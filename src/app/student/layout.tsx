@@ -24,11 +24,11 @@ export default async function StudentLayout({
   // 2. Verify profile and role on the server
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, is_active")
+    .select("full_name, role, status, is_active")
     .eq("id", user.id)
     .single();
 
-  if (!profile || !profile.is_active) {
+  if (!profile || !profile.is_active || profile.status !== "approved") {
     await supabase.auth.signOut();
     redirect("/login?role=student");
   }
