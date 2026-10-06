@@ -55,6 +55,12 @@ export interface WeekRange {
  * 1. Returns current instant.
  */
 export function lagosNow(): Date {
+  if (process.env.NODE_ENV !== "production" && process.env.DEV_OVERRIDE_TIME) {
+    const override = new Date(process.env.DEV_OVERRIDE_TIME);
+    if (!isNaN(override.getTime())) {
+      return override;
+    }
+  }
   return new Date();
 }
 

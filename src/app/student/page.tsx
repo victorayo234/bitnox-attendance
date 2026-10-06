@@ -1,6 +1,17 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle, Badge } from "@/components";
-import { UserCheck, QrCode } from "lucide-react";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  lagosNow,
+  toLagosDateString,
+  getGateState,
+} from "@/lib/attendance-rules";
+import { formatInTimeZone } from "date-fns-tz";
+import { TIMEZONE } from "@/lib/config";
+import { StudentTodayCard } from "@/components/StudentTodayCard";
+import Link from "next/link";
+import { CalendarCheck, ChevronRight } from "lucide-react";
+import { Card } from "@/components/ui/Card";
 
 export const metadata = {
   title: "Student Dashboard | Bitnox Attendance",
@@ -12,52 +23,87 @@ export default async function StudentPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
+  const cookieStore = await cookies();
+  const mockTimeCookie =
+    process.env.NODE_ENV !== "production"
+      ? cookieStore.get("dev_mock_time")?.value
+      : null;
+  const now =
+    mockTimeCookie && !isNaN(new Date(mockTimeCookie).getTime())
+      ? new Date(mockTimeCookie)
+      : lagosNow();
+
+  const todayDate = toLagosDateString(now);
+
+  const adminClient = createAdminClient();
+
+  // Load student profile
+  const { data: profile } = await adminClient
     .from("profiles")
     .select("full_name, email")
     .eq("id", user?.id || "")
     .single();
 
-  const name = profile?.full_name || "Student";
+  // Load today's attendance row
+  const { data: todayRecord } = await adminClient
+    .from("attendance")
+    .select("*")
+    .eq("student_id", user?.id || "")
+    .eq("attendance_date", todayDate)
+    .maybeSingle();
+
+  // Compute gate state
+  const gateState = getGateState(now, todayRecord);
+
+  // If gate is blocking, layout renders ONLY ScanGate; page returns null
+  if (gateState === "GATE_BLOCKING") {
+    return null;
+  }
+
+  const firstName = profile?.full_name?.trim().split(" ")[0] || "Student";
+  const lagosTimeFormatted = formatInTimeZone(now, TIMEZONE, "hh:mm a");
+  const lagosDateFormatted = formatInTimeZone(now, TIMEZONE, "EEEE, MMMM d, yyyy");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-6">
+      {/* Greeting Header */}
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-primary">
-          Welcome, {name}
+        <h1 className="text-2xl font-bold tracking-tight text-[#0B1B3F]">
+          Welcome, {firstName}
         </h1>
-        <p className="text-sm text-muted">
-          Your student attendance dashboard is active.
-        </p>
+        <p className="text-xs text-[#5E6C87]">{lagosDateFormatted}</p>
       </div>
 
-      <Card className="bg-white">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base font-semibold">Attendance Overview</CardTitle>
-          <Badge variant="present" withDot>
-            Enrolled
-          </Badge>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-2">
-          <div className="rounded-[16px] bg-soft border border-border p-5 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center border border-border shadow-xs text-primary">
-              <UserCheck className="h-6 w-6" />
+      {/* Today Attendance Card */}
+      <StudentTodayCard
+        studentName={firstName}
+        gateState={gateState}
+        lagosTimeFormatted={lagosTimeFormatted}
+        lagosDateFormatted={lagosDateFormatted}
+        todayRecord={todayRecord}
+      />
+
+      {/* Quick Link to Weekly History */}
+      <Card className="bg-white hover:bg-[#F8FAFE] transition-colors border border-[#DDE3EE]">
+        <Link
+          href="/student/weekly"
+          className="flex items-center justify-between p-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-full bg-[#F1F4FB] text-[#0B1B3F]">
+              <CalendarCheck className="w-5 h-5 text-[#0B1B3F]" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-primary">{name}</p>
-              <p className="text-xs text-muted">{profile?.email}</p>
+              <h4 className="text-sm font-semibold text-[#0B1B3F]">
+                View Weekly Attendance
+              </h4>
+              <p className="text-xs text-[#5E6C87]">
+                Check your weekly punctuality and record breakdown
+              </p>
             </div>
           </div>
-
-          <div className="rounded-[16px] bg-white border border-border p-4 text-center space-y-2">
-            <div className="inline-flex p-3 rounded-full bg-soft text-primary">
-              <QrCode className="h-6 w-6" />
-            </div>
-            <p className="text-xs font-medium text-muted">
-              QR Scanner module will be loaded here.
-            </p>
-          </div>
-        </CardContent>
+          <ChevronRight className="w-5 h-5 text-[#5E6C87]" />
+        </Link>
       </Card>
     </div>
   );
