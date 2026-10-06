@@ -331,10 +331,11 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Date Picker Section */}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2 bg-[#F1F4FB] border border-[#DDE3EE] px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-2 bg-[#F1F4FB] border border-[#DDE3EE] px-4 min-h-[44px] rounded-full">
               <Calendar className="w-4 h-4 text-[#0B1B3F]" />
               <input
                 type="date"
+                aria-label="Attendance date"
                 value={selectedDate}
                 onChange={(e) => handleDateChange(e.target.value)}
                 className="bg-transparent text-xs font-semibold text-[#0B1B3F] focus:outline-none cursor-pointer"
@@ -346,22 +347,22 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
                 variant="outline"
                 size="sm"
                 onClick={() => handleDateChange(data.todayDate)}
-                className="rounded-full text-xs font-semibold h-8 px-3"
+                className="rounded-full text-xs font-semibold min-h-[44px] px-3.5"
               >
                 Jump to Today
               </Button>
             )}
 
             {isToday ? (
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#16A34A] bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#16A34A] bg-green-50 border border-green-200 px-3 py-1.5 rounded-full inline-flex items-center min-h-[32px]">
                 Today (Live)
               </span>
             ) : isFuture ? (
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full inline-flex items-center min-h-[32px]">
                 Future Date
               </span>
             ) : (
-              <span className="text-[11px] font-medium text-[#5E6C87] bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-medium text-[#5E6C87] bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full inline-flex items-center min-h-[32px]">
                 Historical View
               </span>
             )}
@@ -377,7 +378,7 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
               size="sm"
               onClick={() => fetchData(selectedDate, true)}
               disabled={isRefreshing}
-              className="rounded-full h-8 px-3 text-xs font-medium border-[#DDE3EE] hover:bg-[#F1F4FB]"
+              className="rounded-full min-h-[44px] px-4 text-xs font-medium border-[#DDE3EE] hover:bg-[#F1F4FB]"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 mr-1.5 text-[#0B1B3F] ${
@@ -399,14 +400,17 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
             <input
               type="text"
               placeholder="Search student by name or email..."
+              aria-label="Search student by name or email"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#DDE3EE] rounded-full text-xs font-medium text-[#0B1B3F] placeholder-[#5E6C87] focus:outline-none focus:border-[#0B1B3F] focus:ring-1 focus:ring-[#0B1B3F] transition-all shadow-2xs"
+              className="w-full pl-10 pr-4 min-h-[44px] bg-white border border-[#DDE3EE] rounded-full text-xs font-medium text-[#0B1B3F] placeholder-[#5E6C87] focus:outline-none focus:border-[#0B1B3F] focus:ring-1 focus:ring-[#0B1B3F] transition-all shadow-2xs"
             />
             {searchQuery && (
               <button
+                type="button"
+                aria-label="Clear search"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5E6C87] hover:text-[#0B1B3F]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-[#5E6C87] hover:text-[#0B1B3F]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -417,7 +421,7 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={() => setActiveFilter("all")}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
                 activeFilter === "all"
                   ? "bg-[#0B1B3F] text-white"
                   : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
@@ -428,7 +432,7 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
 
             <button
               onClick={() => setActiveFilter("in")}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
                 activeFilter === "in"
                   ? "bg-[#16A34A] text-white"
                   : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
@@ -439,7 +443,7 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
 
             <button
               onClick={() => setActiveFilter("out")}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
                 activeFilter === "out"
                   ? "bg-[#0B1B3F] text-white"
                   : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
@@ -450,7 +454,7 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
 
             <button
               onClick={() => setActiveFilter("not_in")}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
                 activeFilter === "not_in"
                   ? "bg-[#F59E0B] text-white"
                   : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
@@ -461,7 +465,7 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
 
             <button
               onClick={() => setActiveFilter("late")}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
                 activeFilter === "late"
                   ? "bg-amber-600 text-white"
                   : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"

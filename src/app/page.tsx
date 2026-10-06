@@ -19,7 +19,7 @@ export default function HomePage() {
         <div className="flex flex-col items-center">
           <Image
             src="/images/bitnox-logo.png"
-            alt="Bitnox"
+            alt="Bitnox Attendance"
             width={180}
             height={44}
             priority

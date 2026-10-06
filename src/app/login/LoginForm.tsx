@@ -46,7 +46,7 @@ export function LoginForm() {
         <Link href="/" className="inline-block transition-opacity hover:opacity-85">
           <Image
             src="/images/bitnox-logo.png"
-            alt="Bitnox"
+            alt="Bitnox Attendance"
             width={160}
             height={40}
             priority
@@ -109,7 +109,7 @@ export function LoginForm() {
                   autoComplete="email"
                   required
                   placeholder={isStudent ? "student@bitnox.qc" : "admin@bitnox.qc"}
-                  className="w-full rounded-full border border-border bg-white pl-10 pr-4 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-4 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
@@ -133,12 +133,12 @@ export function LoginForm() {
                   autoComplete="current-password"
                   required
                   placeholder="••••••••"
-                  className="w-full rounded-full border border-border bg-white pl-10 pr-11 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-11 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-muted hover:text-primary focus:outline-none"
+                  className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-muted hover:text-primary focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (

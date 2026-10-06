@@ -1,0 +1,26 @@
+import React from "react";
+import { Card } from "@/components/ui/Card";
+
+export default function AdminQrLoading() {
+  return (
+    <div className="space-y-6 pb-20 max-w-4xl mx-auto animate-pulse">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
+          <div className="h-6 w-48 bg-slate-200 rounded" />
+          <div className="h-3 w-72 bg-slate-100 rounded" />
+        </div>
+        <div className="h-11 w-32 bg-slate-200 rounded-full" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[1, 2].map((i) => (
+          <Card key={i} className="bg-white border border-[#DDE3EE] p-6 rounded-2xl flex flex-col items-center space-y-4">
+            <div className="h-5 w-28 bg-slate-200 rounded" />
+            <div className="w-64 h-64 bg-slate-100 rounded-xl" />
+            <div className="h-3 w-44 bg-slate-100 rounded" />
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}

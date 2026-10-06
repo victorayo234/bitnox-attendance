@@ -46,7 +46,7 @@ export function SuccessPopup({
         <div className="flex flex-col items-center justify-center space-y-1.5">
           <Image
             src="/images/bitnox-logo.png"
-            alt="Bitnox"
+            alt="Bitnox Attendance"
             width={120}
             height={30}
             priority

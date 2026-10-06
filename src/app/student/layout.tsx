@@ -62,7 +62,7 @@ export default async function StudentLayout({
           <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
             <Image
               src="/images/bitnox-logo.png"
-              alt="Bitnox"
+              alt="Bitnox Attendance"
               width={120}
               height={30}
               priority
@@ -155,7 +155,7 @@ export default async function StudentLayout({
             <Link href="/student" className="flex flex-col">
               <Image
                 src="/images/bitnox-logo.png"
-                alt="Bitnox"
+                alt="Bitnox Attendance"
                 width={120}
                 height={30}
                 priority

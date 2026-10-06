@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, WifiOff, RefreshCw } from "lucide-react";
 import { QrScanner } from "@/components/QrScanner";
 import { SuccessPopup } from "@/components/SuccessPopup";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -40,7 +40,7 @@ export function ScanGate() {
         <div className="flex flex-col">
           <Image
             src="/images/bitnox-logo.png"
-            alt="Bitnox"
+            alt="Bitnox Attendance"
             width={130}
             height={32}
             priority
@@ -68,18 +68,41 @@ export function ScanGate() {
         {error && !loading && (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-left text-sm text-red-700 flex items-start gap-2.5 animate-in fade-in duration-150"
+            className="rounded-xl border border-red-200 bg-red-50 p-4 text-left text-sm text-red-700 space-y-2 animate-in fade-in duration-150"
           >
-            <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-semibold text-xs text-red-800">Scan Rejected</p>
-              <p className="text-xs text-red-700 mt-0.5 leading-snug">{error.message}</p>
+            <div className="flex items-start gap-2.5">
+              {error.code === "OFFLINE" || error.code === "NETWORK_ERROR" ? (
+                <WifiOff className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+              ) : (
+                <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+              )}
+              <div className="flex-1 space-y-0.5">
+                <p className="font-semibold text-xs text-red-800">
+                  {error.code === "OFFLINE"
+                    ? "Device Offline"
+                    : error.code === "NETWORK_ERROR"
+                    ? "Network Interrupted"
+                    : "Scan Rejected"}
+                </p>
+                <p className="text-xs text-red-700 leading-snug">{error.message}</p>
+                {(error.code === "OFFLINE" || error.code === "NETWORK_ERROR") && (
+                  <p className="text-[11px] text-red-600">
+                    Your check-in will not duplicate. Tap retry once your internet connection is restored.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={handleRetryScan}
-                className="mt-2 text-xs font-semibold text-red-800 underline hover:text-red-950"
+                className="w-full min-h-[44px] flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-red-600 text-white text-xs font-semibold hover:bg-red-700 active:scale-[0.99] transition-all shadow-xs"
               >
-                Scan again
+                <RefreshCw className="w-3.5 h-3.5" />
+                {error.code === "OFFLINE" || error.code === "NETWORK_ERROR"
+                  ? "Retry Connection"
+                  : "Scan again"}
               </button>
             </div>
           </div>

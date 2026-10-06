@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Printer, Smartphone, HelpCircle, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -57,9 +58,12 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
         <div className="print-poster-page poster-in bg-white border border-[#DDE3EE] rounded-3xl p-8 sm:p-10 shadow-sm flex flex-col items-center justify-between text-center min-h-[560px] print:border-none print:shadow-none print:p-0 print:m-0 print:min-h-screen">
           {/* Top Brand Header */}
           <div className="flex flex-col items-center space-y-2 pt-2">
-            <img
+            <Image
               src="/images/bitnox-logo.png"
-              alt="Bitnox"
+              alt="Bitnox Attendance"
+              width={160}
+              height={40}
+              priority
               className="h-10 sm:h-12 w-auto object-contain print:h-14"
             />
             <div className="h-1 w-16 bg-[#00E6FF] rounded-full print:bg-black print:h-1" />
@@ -112,9 +116,12 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
         <div className="print-poster-page poster-out bg-white border border-[#DDE3EE] rounded-3xl p-8 sm:p-10 shadow-sm flex flex-col items-center justify-between text-center min-h-[560px] print:border-none print:shadow-none print:p-0 print:m-0 print:min-h-screen">
           {/* Top Brand Header */}
           <div className="flex flex-col items-center space-y-2 pt-2">
-            <img
+            <Image
               src="/images/bitnox-logo.png"
-              alt="Bitnox"
+              alt="Bitnox Attendance"
+              width={160}
+              height={40}
+              priority
               className="h-10 sm:h-12 w-auto object-contain print:h-14"
             />
             <div className="h-1 w-16 bg-[#00E6FF] rounded-full print:bg-black print:h-1" />

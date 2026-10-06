@@ -57,7 +57,7 @@ export default async function AdminLayout({
           <Link href="/admin" className="flex items-center gap-2">
             <Image
               src="/images/bitnox-logo.png"
-              alt="Bitnox"
+              alt="Bitnox Attendance"
               width={120}
               height={30}
               priority

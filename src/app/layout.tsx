@@ -10,11 +10,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Bitnox Attendance",
-  description: "QR-based attendance system for Bitnox Technology, Abeokuta",
-  icons: {
-    icon: "/favicon.ico",
+  metadataBase: new URL("https://bitnox-attendance.vercel.app"),
+  title: {
+    default: "Bitnox Attendance",
+    template: "%s | Bitnox Attendance",
   },
+  description: "Scan in. Scan out. Stay on track. QR-based attendance system for Bitnox Technology, Abeokuta",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Bitnox",
+  },
+  applicationName: "Bitnox Attendance",
 };
 
 export const viewport: Viewport = {
@@ -22,6 +30,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#0B1B3F",
 };
 
 export default function RootLayout({

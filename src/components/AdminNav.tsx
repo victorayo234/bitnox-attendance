@@ -61,7 +61,7 @@ export function AdminNav({ pendingCount = 0 }: AdminNavProps) {
           <Link
             key={item.href}
             href={item.href}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
               active
                 ? "bg-[#0B1B3F] text-white shadow-2xs"
                 : "text-[#5E6C87] hover:text-[#0B1B3F] hover:bg-[#F1F4FB]"

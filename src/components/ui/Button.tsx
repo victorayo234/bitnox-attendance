@@ -10,6 +10,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  asChild?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -26,9 +27,9 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "h-9 px-4 text-xs tracking-wide",
-  md: "h-11 px-6 text-sm tracking-normal",
-  lg: "h-13 px-8 text-base tracking-normal",
+  sm: "min-h-[44px] px-4 text-xs tracking-wide",
+  md: "min-h-[44px] h-11 px-6 text-sm tracking-normal",
+  lg: "min-h-[48px] h-12 px-8 text-base tracking-normal",
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -43,19 +44,28 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon,
       rightIcon,
       disabled,
+      asChild = false,
       ...props
     },
     ref
   ) => {
     const isDisabled = disabled || isLoading;
+    const buttonClasses = `inline-flex items-center justify-center font-semibold rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none ${
+      variantStyles[variant]
+    } ${sizeStyles[size]} ${fullWidth ? "w-full" : ""} ${className}`;
+
+    if (asChild && React.isValidElement(children)) {
+      const child = children as React.ReactElement<{ className?: string }>;
+      return React.cloneElement(child, {
+        className: `${buttonClasses} ${child.props.className || ""}`.trim(),
+      });
+    }
 
     return (
       <button
         ref={ref}
         disabled={isDisabled}
-        className={`inline-flex items-center justify-center font-semibold rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none ${
-          variantStyles[variant]
-        } ${sizeStyles[size]} ${fullWidth ? "w-full" : ""} ${className}`}
+        className={buttonClasses}
         {...props}
       >
         {isLoading ? (

@@ -129,7 +129,7 @@ export default async function WeeklyAttendancePage({
         </div>
         <Link
           href="/student"
-          className="text-xs font-semibold text-[#5E6C87] hover:text-[#0B1B3F] inline-flex items-center py-2 px-3 rounded-full hover:bg-white transition-colors"
+          className="text-xs font-semibold text-[#5E6C87] hover:text-[#0B1B3F] inline-flex items-center min-h-[44px] py-2 px-3 rounded-full hover:bg-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
           Dashboard

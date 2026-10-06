@@ -72,24 +72,39 @@ export function useScanSubmit(): UseScanSubmitReturn {
         setResult(successData);
         return successData;
       } else {
+        const isInactive = data?.code === "ACCOUNT_INACTIVE";
         const errorData: ScanErrorData = {
           code: data?.code || "SCAN_ERROR",
           message:
             data?.message ||
             (response.status === 401
               ? "Session expired. Please log in again."
+              : isInactive
+              ? "Your account has been deactivated. You have been signed out."
               : response.status === 403
               ? "Account access restricted or outside valid attendance hours."
               : "Attendance scan could not be processed."),
         };
         setError(errorData);
+
+        // Edge case: deactivated student still logged in is signed out immediately
+        if (isInactive || response.status === 401) {
+          if (typeof window !== "undefined") {
+            setTimeout(() => {
+              window.location.href = "/login?role=student";
+            }, 1200);
+          }
+        }
+
         return null;
       }
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Network error. Please check your internet connection.";
+      const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+      const errorMessage = isOffline
+        ? "You appear to be offline. Please check your connection and tap retry."
+        : "Network connection was interrupted or slow. Tap retry to submit again.";
       const networkError: ScanErrorData = {
-        code: "NETWORK_ERROR",
+        code: isOffline ? "OFFLINE" : "NETWORK_ERROR",
         message: errorMessage,
       };
       setError(networkError);

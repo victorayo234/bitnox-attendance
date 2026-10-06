@@ -27,11 +27,12 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (!profile || !profile.is_active || profile.status !== "approved") {
+    await supabase.auth.signOut();
     return NextResponse.json(
       {
         ok: false,
         code: "ACCOUNT_INACTIVE",
-        message: "Your account is not approved to record attendance.",
+        message: "Your account is not active or approved to record attendance.",
       },
       { status: 403 }
     );

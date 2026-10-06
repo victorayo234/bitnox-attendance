@@ -5,6 +5,7 @@ import {
   lagosNow,
   toLagosDateString,
   getGateState,
+  isWorkday,
 } from "@/lib/attendance-rules";
 import { formatInTimeZone } from "date-fns-tz";
 import { TIMEZONE } from "@/lib/config";
@@ -64,24 +65,27 @@ export default async function StudentPage() {
   const lagosTimeFormatted = formatInTimeZone(now, TIMEZONE, "hh:mm a");
   const lagosDateFormatted = formatInTimeZone(now, TIMEZONE, "EEEE, MMMM d, yyyy");
 
-  return (
-    <div className="space-y-6 pb-20 md:pb-6">
-      {/* Greeting Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-[#0B1B3F]">
-          Welcome, {firstName}
-        </h1>
-        <p className="text-xs text-[#5E6C87]">{lagosDateFormatted}</p>
-      </div>
+      const isWorkdayToday = isWorkday(now);
 
-      {/* Today Attendance Card */}
-      <StudentTodayCard
-        studentName={firstName}
-        gateState={gateState}
-        lagosTimeFormatted={lagosTimeFormatted}
-        lagosDateFormatted={lagosDateFormatted}
-        todayRecord={todayRecord}
-      />
+      return (
+        <div className="space-y-6 pb-20 md:pb-6">
+          {/* Greeting Header */}
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-[#0B1B3F]">
+              Welcome, {firstName}
+            </h1>
+            <p className="text-xs text-[#5E6C87]">{lagosDateFormatted}</p>
+          </div>
+
+          {/* Today Attendance Card */}
+          <StudentTodayCard
+            studentName={firstName}
+            gateState={gateState}
+            lagosTimeFormatted={lagosTimeFormatted}
+            lagosDateFormatted={lagosDateFormatted}
+            todayRecord={todayRecord}
+            isWorkday={isWorkdayToday}
+          />
 
       {/* Quick Link to Weekly History */}
       <Card className="bg-white hover:bg-[#F8FAFE] transition-colors border border-[#DDE3EE]">

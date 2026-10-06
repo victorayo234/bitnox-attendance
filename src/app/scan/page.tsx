@@ -49,7 +49,7 @@ export default async function ScanPage({
           <div className="flex flex-col">
             <Image
               src="/images/bitnox-logo.png"
-              alt="Bitnox"
+              alt="Bitnox Attendance"
               width={120}
               height={30}
               priority

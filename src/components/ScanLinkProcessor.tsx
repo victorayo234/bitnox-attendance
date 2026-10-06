@@ -9,14 +9,14 @@ import { SuccessPopup } from "@/components/SuccessPopup";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, Home } from "lucide-react";
+import { CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, Home, WifiOff } from "lucide-react";
 
 export interface ScanLinkProcessorProps {
   code: string;
   studentName?: string;
 }
 
-export function ScanLinkProcessor({ code, studentName }: import("@/types") extends any ? { code: string; studentName?: string } : any) {
+export function ScanLinkProcessor({ code, studentName }: ScanLinkProcessorProps) {
   const router = useRouter();
   const { loading, result, error, submitScan } = useScanSubmit();
   const [showPopup, setShowPopup] = useState(false);
@@ -38,6 +38,15 @@ export function ScanLinkProcessor({ code, studentName }: import("@/types") exten
     router.push("/student");
   };
 
+  const handleRetry = () => {
+    if (!code) return;
+    submitScan(code).then((success) => {
+      if (success) {
+        setShowPopup(true);
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F8FE] flex flex-col justify-between p-4 sm:p-6">
       {/* Brand Header */}
@@ -45,7 +54,7 @@ export function ScanLinkProcessor({ code, studentName }: import("@/types") exten
         <div className="flex flex-col items-center">
           <Image
             src="/images/bitnox-logo.png"
-            alt="Bitnox"
+            alt="Bitnox Attendance"
             width={130}
             height={32}
             priority
@@ -69,7 +78,7 @@ export function ScanLinkProcessor({ code, studentName }: import("@/types") exten
                 No code was detected in the scan link. Please use your phone camera or the in-app scanner to scan a valid Bitnox QR code.
               </p>
             </div>
-            <Button asChild className="w-full rounded-full bg-[#0B1B3F] text-white py-3">
+            <Button asChild className="w-full min-h-[44px] rounded-full bg-[#0B1B3F] text-white py-3">
               <Link href="/student">
                 <Home className="w-4 h-4 mr-2" />
                 Go to Dashboard
@@ -112,7 +121,7 @@ export function ScanLinkProcessor({ code, studentName }: import("@/types") exten
               </h2>
             </div>
 
-            <Button asChild className="w-full rounded-full bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white py-3 text-sm font-medium">
+            <Button asChild className="w-full min-h-[44px] rounded-full bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white py-3 text-sm font-medium">
               <Link href="/student">
                 Go to Dashboard
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -125,7 +134,11 @@ export function ScanLinkProcessor({ code, studentName }: import("@/types") exten
         {error && !loading && (
           <Card className="bg-white border border-red-200 p-6 text-center space-y-5 shadow-sm animate-in fade-in duration-200">
             <div className="w-14 h-14 rounded-full bg-red-50 text-[#EF4444] border border-red-200 flex items-center justify-center mx-auto shadow-xs">
-              <AlertTriangle className="w-7 h-7" />
+              {error.code === "OFFLINE" || error.code === "NETWORK_ERROR" ? (
+                <WifiOff className="w-7 h-7" />
+              ) : (
+                <AlertTriangle className="w-7 h-7" />
+              )}
             </div>
 
             <div className="space-y-2">
@@ -136,16 +149,31 @@ export function ScanLinkProcessor({ code, studentName }: import("@/types") exten
                 {error.message}
               </h2>
               <p className="text-xs text-[#5E6C87]">
-                Your attendance could not be saved with this code.
+                {error.code === "OFFLINE" || error.code === "NETWORK_ERROR"
+                  ? "Your network request timed out. You can retry safely without creating a duplicate attendance record."
+                  : "Your attendance could not be saved with this code."}
               </p>
             </div>
 
-            <Button asChild className="w-full rounded-full bg-[#0B1B3F] text-white py-3 text-sm font-medium">
-              <Link href="/student">
-                <Home className="w-4 h-4 mr-2" />
-                Go to Dashboard
-              </Link>
-            </Button>
+            <div className="space-y-2 pt-2">
+              <Button
+                onClick={handleRetry}
+                className="w-full min-h-[44px] rounded-full bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white py-3 text-sm font-medium"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry Verification
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full min-h-[44px] rounded-full border-[#DDE3EE] py-3 text-sm font-medium"
+              >
+                <Link href="/student">
+                  <Home className="w-4 h-4 mr-2" />
+                  Go to Dashboard
+                </Link>
+              </Button>
+            </div>
           </Card>
         )}
       </main>
