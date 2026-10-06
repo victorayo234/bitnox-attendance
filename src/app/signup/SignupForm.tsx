@@ -5,13 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { signupStudentAction } from "@/lib/actions/auth";
 import { Button, Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, AlertCircle, CheckCircle2, GraduationCap } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, AlertCircle, Clock, GraduationCap } from "lucide-react";
 
 export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -26,7 +26,7 @@ export function SignupForm() {
       if (result?.error) {
         setErrorMessage(result.error);
       } else if (result?.success) {
-        setSuccessMessage(result.message || "Registration submitted successfully!");
+        setIsSubmitted(true);
         form.reset();
       }
     });
@@ -50,40 +50,48 @@ export function SignupForm() {
       </div>
 
       <Card className="bg-white shadow-xs">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-soft text-primary">
-            <GraduationCap className="h-6 w-6" />
-          </div>
-          <CardTitle className="text-xl font-bold text-primary">Student Sign Up</CardTitle>
-          <CardDescription className="text-xs">
-            Create your account to record attendance at Bitnox Technology
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="pt-4">
-          {/* Success Banner */}
-          {successMessage ? (
-            <div className="space-y-4 py-2 text-center animate-in fade-in-50">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-present/10 text-present">
-                <CheckCircle2 className="h-7 w-7" />
-              </div>
-              <div className="space-y-1.5">
-                <h4 className="text-sm font-bold text-primary">Enrollment Submitted</h4>
-                <p className="text-xs text-muted leading-relaxed">
-                  {successMessage}
-                </p>
-              </div>
-              <div className="pt-3">
-                <Link href="/login?role=student" className="block w-full">
-                  <Button variant="primary" size="md" fullWidth>
-                    Go to Student Login
-                  </Button>
-                </Link>
-              </div>
+        {/* Waiting for approval screen */}
+        {isSubmitted ? (
+          <CardContent className="pt-6 pb-6 text-center space-y-5 animate-in fade-in-50">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#F59E0B]/10 text-late border border-[#F59E0B]/20">
+              <Clock className="h-8 w-8 animate-pulse" />
             </div>
-          ) : (
-            <>
-              {/* Error Banner */}
+            
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold tracking-tight text-primary">
+                Waiting for approval
+              </h2>
+              <p className="text-xs text-muted leading-relaxed px-2">
+                Your student enrollment has been submitted. An administrator must approve your account before you can log in, access the dashboard, or scan attendance.
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-soft border border-border p-3 text-xs text-muted">
+              <span>Status: </span>
+              <span className="font-semibold text-late">Pending Admin Review</span>
+            </div>
+
+            <div className="pt-2">
+              <Link href="/login?role=student" className="block w-full">
+                <Button variant="primary" size="lg" fullWidth className="py-3 text-sm">
+                  Back to Login
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        ) : (
+          <>
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-soft text-primary">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+              <CardTitle className="text-xl font-bold text-primary">Student Sign Up</CardTitle>
+              <CardDescription className="text-xs">
+                Create your account to record attendance at Bitnox Technology
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="pt-4">
               {errorMessage && (
                 <div
                   className="mb-4 flex items-start gap-2.5 rounded-xl border border-absent/30 bg-absent/10 p-3 text-xs text-absent animate-in fade-in-50"
@@ -142,13 +150,13 @@ export function SignupForm() {
                   </div>
                 </div>
 
-                {/* Password */}
+                {/* Password (min 8 chars) */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="password"
                     className="block text-xs font-semibold text-primary"
                   >
-                    Password (min. 6 characters)
+                    Password (min. 8 characters)
                   </label>
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
@@ -160,7 +168,7 @@ export function SignupForm() {
                       type={showPassword ? "text" : "password"}
                       autoComplete="new-password"
                       required
-                      minLength={6}
+                      minLength={8}
                       placeholder="••••••••"
                       className="w-full rounded-full border border-border bg-white pl-10 pr-11 py-2 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     />
@@ -197,7 +205,7 @@ export function SignupForm() {
                       type={showConfirmPassword ? "text" : "password"}
                       autoComplete="new-password"
                       required
-                      minLength={6}
+                      minLength={8}
                       placeholder="••••••••"
                       className="w-full rounded-full border border-border bg-white pl-10 pr-11 py-2 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     />
@@ -226,7 +234,7 @@ export function SignupForm() {
                     isLoading={isPending}
                     className="py-3 text-sm shadow-sm"
                   >
-                    {isPending ? "Submitting Enrollment..." : "Register as Student"}
+                    {isPending ? "Creating Account..." : "Register as Student"}
                   </Button>
                 </div>
               </form>
@@ -234,7 +242,7 @@ export function SignupForm() {
               {/* Already have an account */}
               <div className="mt-5 border-t border-border pt-4 text-center">
                 <p className="text-xs text-muted">
-                  Already enrolled?{" "}
+                  Already have an account?{" "}
                   <Link
                     href="/login?role=student"
                     className="font-semibold text-primary hover:underline"
@@ -243,9 +251,9 @@ export function SignupForm() {
                   </Link>
                 </p>
               </div>
-            </>
-          )}
-        </CardContent>
+            </CardContent>
+          </>
+        )}
       </Card>
 
       {/* Back to Home */}

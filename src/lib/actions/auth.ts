@@ -143,8 +143,8 @@ export async function signupStudentAction(
     return { error: "Please fill in all required fields.", timestamp: Date.now() };
   }
 
-  if (password.length < 6) {
-    return { error: "Password must be at least 6 characters.", timestamp: Date.now() };
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters.", timestamp: Date.now() };
   }
 
   if (password !== confirmPassword) {
