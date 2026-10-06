@@ -36,6 +36,34 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // 1. Strict protection for /admin/qr: must return 403 for non-admins
+  if (pathname === "/admin/qr" || pathname.startsWith("/admin/qr/")) {
+    if (!user) {
+      return new NextResponse("Forbidden: Administrator access required", {
+        status: 403,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, is_active, status")
+      .eq("id", user.id)
+      .single();
+
+    if (
+      !profile ||
+      profile.role !== "admin" ||
+      !profile.is_active ||
+      profile.status !== "approved"
+    ) {
+      return new NextResponse("Forbidden: Administrator access required", {
+        status: 403,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+  }
+
   // Middleware protection: unauthenticated users hitting /student/* or /admin/* go to /login
   if (!user && (pathname.startsWith("/student") || pathname.startsWith("/admin"))) {
     const url = request.nextUrl.clone();

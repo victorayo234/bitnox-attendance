@@ -9,3 +9,4 @@ export * from "./AdminAttendanceConsole";
 export * from "./AdminNav";
 export * from "./AdminWeeklyMatrix";
 export * from "./AdminStudentsDirectory";
+export * from "./AdminQrPrintView";
