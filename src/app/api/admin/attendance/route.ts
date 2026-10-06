@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
       ok: true,
       data,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error("Failed to load attendance console data:", err);
     return NextResponse.json(
-      { ok: false, error: err.message || "Failed to load attendance console data" },
+      { ok: false, error: "Failed to load attendance console data" },
       { status: 500 }
     );
   }

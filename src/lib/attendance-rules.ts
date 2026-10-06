@@ -41,6 +41,7 @@ export interface ScanEvaluation {
 export interface TodayAttendanceRecord {
   check_in_at?: string | null;
   check_out_at?: string | null;
+  status?: "present" | "late";
 }
 
 export interface WeekRange {

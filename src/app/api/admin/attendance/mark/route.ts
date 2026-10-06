@@ -139,8 +139,9 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (fetchRowError) {
+    console.error("Failed to query attendance record:", fetchRowError);
     return NextResponse.json(
-      { ok: false, error: "Failed to query attendance record: " + fetchRowError.message },
+      { ok: false, error: "Failed to query attendance record" },
       { status: 500 }
     );
   }
@@ -204,8 +205,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError || !updated) {
+      console.error("Failed to update attendance record:", updateError);
       return NextResponse.json(
-        { ok: false, error: "Failed to update attendance record: " + updateError?.message },
+        { ok: false, error: "Failed to update attendance record" },
         { status: 500 }
       );
     }
@@ -232,8 +234,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError || !inserted) {
+      console.error("Failed to create attendance record:", insertError);
       return NextResponse.json(
-        { ok: false, error: "Failed to create attendance record: " + insertError?.message },
+        { ok: false, error: "Failed to create attendance record" },
         { status: 500 }
       );
     }

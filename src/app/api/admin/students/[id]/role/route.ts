@@ -115,8 +115,9 @@ export async function POST(
     .single();
 
   if (updateError || !updatedProfile) {
+    console.error("Failed to update role:", updateError);
     return NextResponse.json(
-      { error: "Failed to update role: " + updateError?.message },
+      { error: "Failed to update role" },
       { status: 500 }
     );
   }

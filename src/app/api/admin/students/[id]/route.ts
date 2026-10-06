@@ -138,8 +138,9 @@ export async function PATCH(
       .single();
 
     if (updateError || !updated) {
+      console.error("Failed to update profile:", updateError);
       return NextResponse.json(
-        { ok: false, error: "Failed to update profile: " + updateError?.message },
+        { ok: false, error: "Failed to update profile" },
         { status: 500 }
       );
     }

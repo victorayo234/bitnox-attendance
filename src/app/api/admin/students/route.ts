@@ -105,8 +105,9 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (profileError || !profile) {
+    console.error("Failed to create profile:", profileError);
     return NextResponse.json(
-      { ok: false, error: "User was created but profile update failed: " + profileError?.message },
+      { ok: false, error: "User was created but profile update failed" },
       { status: 500 }
     );
   }

@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth";
 import { ApprovalsList } from "./ApprovalsList";
 import { Profile } from "@/types";
 
@@ -8,6 +10,11 @@ export const metadata = {
 };
 
 export default async function ApprovalsPage() {
+  const adminAuth = await requireAdmin();
+  if (!adminAuth) {
+    redirect("/login?role=admin");
+  }
+
   const supabase = await createClient();
 
   const { data: pendingStudents } = await supabase

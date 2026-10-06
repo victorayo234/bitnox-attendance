@@ -113,12 +113,25 @@ export async function loginAction(
   // 6. Safe redirection
   let destination = profile.role === "admin" ? "/admin" : "/student";
 
-  // Validate nextParam: must be same-origin path starting with / and not //
-  if (nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")) {
-    if (profile.role === "student" && nextParam.startsWith("/admin")) {
-      destination = "/student";
-    } else {
-      destination = nextParam;
+  // Validate nextParam: must be strictly a same-origin relative path, no backslashes, no scheme
+  if (
+    nextParam &&
+    nextParam.startsWith("/") &&
+    !nextParam.startsWith("//") &&
+    !nextParam.includes("\\")
+  ) {
+    try {
+      const parsed = new URL(nextParam, "https://bitnox.internal");
+      if (parsed.origin === "https://bitnox.internal") {
+        const path = parsed.pathname + parsed.search;
+        if (profile.role === "student" && path.startsWith("/admin")) {
+          destination = "/student";
+        } else {
+          destination = path;
+        }
+      }
+    } catch {
+      // Fallback to safe destination
     }
   }
 

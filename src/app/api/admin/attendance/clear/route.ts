@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
     .select();
 
   if (deleteError) {
+    console.error("Failed to clear attendance record:", deleteError);
     return NextResponse.json(
-      { ok: false, error: "Failed to clear attendance record: " + deleteError.message },
+      { ok: false, error: "Failed to clear attendance record" },
       { status: 500 }
     );
   }
