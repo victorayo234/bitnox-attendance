@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Profile } from "@/types";
@@ -11,20 +11,22 @@ import {
   ArrowLeft,
   Mail,
   Calendar,
-  Clock,
-  ShieldCheck,
-  ShieldAlert,
-  UserCheck,
-  UserX,
   KeyRound,
   CheckCircle2,
   AlertTriangle,
   CalendarRange,
   X,
+  ShieldCheck,
+  ShieldX,
+  Shield,
+  ShieldAlert,
+  UserCheck,
+  UserX,
+  History,
+  Clock,
+  User,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
-import { TIMEZONE } from "@/lib/attendance-rules";
 
 export interface AttendanceRecord {
   id: string;
@@ -37,10 +39,10 @@ export interface AttendanceRecord {
 }
 
 export interface StudentWeekGroup {
-  weekKey: string; // e.g. "2026-W41"
-  weekStart: string; // Monday
-  weekEnd: string;   // Sunday
-  weekLabel: string; // "Oct 5 – Oct 11, 2026"
+  weekKey: string;
+  weekStart: string;
+  weekEnd: string;
+  weekLabel: string;
   days: {
     date: string;
     dayName: string;
@@ -56,6 +58,13 @@ export interface StudentWeekGroup {
   };
 }
 
+export interface RoleHistoryItem {
+  id: string;
+  adminName: string;
+  action: "Promoted to admin" | "Removed as admin" | string;
+  timestampLagos: string;
+}
+
 interface StudentHistoryViewProps {
   student: Profile;
   weeks: StudentWeekGroup[];
@@ -63,6 +72,8 @@ interface StudentHistoryViewProps {
   totalLate: number;
   totalAbsent: number;
   attendanceRate: number;
+  currentAdminId: string;
+  roleHistory: RoleHistoryItem[];
 }
 
 export function StudentHistoryView({
@@ -72,22 +83,109 @@ export function StudentHistoryView({
   totalLate,
   totalAbsent,
   attendanceRate,
+  currentAdminId,
+  roleHistory: initialRoleHistory,
 }: StudentHistoryViewProps) {
   const router = useRouter();
   const [student, setStudent] = useState<Profile>(initialStudent);
+  const [roleHistory, setRoleHistory] = useState<RoleHistoryItem[]>(initialRoleHistory);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // Modal Dialogs
+  // Role Change Dialog State
+  const [targetRoleAction, setTargetRoleAction] = useState<"admin" | "student" | null>(null);
+  const [roleModalError, setRoleModalError] = useState<string | null>(null);
+  const [isSubmittingRole, setIsSubmittingRole] = useState(false);
+
+  // Deactivate Modal State
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [deactivateError, setDeactivateError] = useState<string | null>(null);
   const [isSubmittingToggle, setIsSubmittingToggle] = useState(false);
 
+  // Reset Password Modal State
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
+  const isCurrentAdmin = student.id === currentAdminId;
+  const canMakeAdmin =
+    student.role === "student" &&
+    student.status === "approved" &&
+    student.is_active;
+  const canRemoveAdmin = student.role === "admin" && !isCurrentAdmin;
+
+  // Escape key cancels modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (!isSubmittingRole && !isSubmittingToggle && !isSubmittingPassword) {
+          setTargetRoleAction(null);
+          setRoleModalError(null);
+          setConfirmDeactivate(false);
+          setDeactivateError(null);
+          setShowPasswordModal(false);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSubmittingRole, isSubmittingToggle, isSubmittingPassword]);
+
+  // Handle Role Change Submission
+  const handleRoleChangeSubmit = async () => {
+    if (!targetRoleAction) return;
+
+    setIsSubmittingRole(true);
+    setRoleModalError(null);
+
+    try {
+      const res = await fetch(`/api/admin/students/${student.id}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: targetRoleAction }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update role");
+      }
+
+      setStudent((prev) => ({ ...prev, role: targetRoleAction }));
+      setToast({
+        type: "success",
+        message:
+          targetRoleAction === "admin"
+            ? `${student.full_name} is now an admin.`
+            : `${student.full_name} is now a student.`,
+      });
+
+      // Update role history list locally
+      setRoleHistory((prev) => [
+        {
+          id: String(Date.now()),
+          adminName: "You",
+          action:
+            targetRoleAction === "admin"
+              ? "Promoted to admin"
+              : "Removed as admin",
+          timestampLagos: format(new Date(), "MMM d, yyyy 'at' hh:mm a"),
+        },
+        ...prev,
+      ]);
+
+      setTargetRoleAction(null);
+      setRoleModalError(null);
+      router.refresh();
+    } catch (err: any) {
+      setRoleModalError(err.message || "Failed to update role.");
+    } finally {
+      setIsSubmittingRole(false);
+    }
+  };
+
   // Toggle active status
   const handleToggleActive = async () => {
     setIsSubmittingToggle(true);
+    setDeactivateError(null);
     const newActive = !student.is_active;
 
     try {
@@ -112,7 +210,11 @@ export function StudentHistoryView({
       });
       router.refresh();
     } catch (err: any) {
-      setToast({ type: "error", message: err.message || "Action failed" });
+      if (confirmDeactivate) {
+        setDeactivateError(err.message || "Action failed");
+      } else {
+        setToast({ type: "error", message: err.message || "Action failed" });
+      }
     } finally {
       setIsSubmittingToggle(false);
     }
@@ -189,11 +291,11 @@ export function StudentHistoryView({
           href="/admin/students"
           className="text-xs font-semibold text-[#0B1B3F] hover:underline"
         >
-          View all students
+          View all accounts
         </Link>
       </div>
 
-      {/* Student Profile Card & Action Bar */}
+      {/* Profile Card & Action Bar */}
       <Card className="bg-white border border-[#DDE3EE] p-5 sm:p-6 rounded-2xl shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -201,6 +303,27 @@ export function StudentHistoryView({
               <h1 className="text-xl sm:text-2xl font-bold text-[#0B1B3F]">
                 {student.full_name}
               </h1>
+
+              {/* You tag */}
+              {isCurrentAdmin && (
+                <span className="px-2 py-0.5 rounded text-xs font-bold bg-[#00E6FF]/20 text-[#0B1B3F] border border-[#00E6FF]/30">
+                  You
+                </span>
+              )}
+
+              {/* Role Badge: Navy Admin pill vs Muted Student pill (Item 5) */}
+              {student.role === "admin" ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0B1B3F] text-white shadow-2xs">
+                  <Shield className="w-3 h-3 mr-1 text-[#00E6FF]" />
+                  Admin
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                  Student
+                </span>
+              )}
+
+              {/* Account Status */}
               {student.is_active ? (
                 <Badge variant="present" withDot>
                   Active
@@ -211,6 +334,7 @@ export function StudentHistoryView({
                 </Badge>
               )}
             </div>
+
             <div className="flex items-center gap-4 text-xs text-[#5E6C87]">
               <span className="inline-flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5" />
@@ -224,8 +348,39 @@ export function StudentHistoryView({
             </div>
           </div>
 
-          {/* Account Actions */}
-          <div className="flex items-center gap-2">
+          {/* Account Actions: Make admin / Remove admin, Reset Password, Deactivate (Item 5) */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Make admin / Remove admin */}
+            {canMakeAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setTargetRoleAction("admin");
+                  setRoleModalError(null);
+                }}
+                className="rounded-full text-xs font-semibold h-9 px-3.5 border-[#0B1B3F]/30 text-[#0B1B3F] hover:bg-[#0B1B3F] hover:text-white transition-colors"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
+                Make admin
+              </Button>
+            )}
+
+            {canRemoveAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setTargetRoleAction("student");
+                  setRoleModalError(null);
+                }}
+                className="rounded-full text-xs font-semibold h-9 px-3.5 border-red-200 text-red-600 hover:bg-red-50"
+              >
+                <ShieldX className="w-3.5 h-3.5 mr-1.5" />
+                Remove admin
+              </Button>
+            )}
+
             <Button
               variant="outline"
               size="sm"
@@ -236,27 +391,32 @@ export function StudentHistoryView({
               Reset Password
             </Button>
 
-            {student.is_active ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setConfirmDeactivate(true)}
-                className="rounded-full text-xs font-semibold h-9 px-3.5 border-red-200 text-red-600 hover:bg-red-50"
-              >
-                <UserX className="w-3.5 h-3.5 mr-1.5" />
-                Deactivate
-              </Button>
-            ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleToggleActive}
-                isLoading={isSubmittingToggle}
-                className="rounded-full text-xs font-semibold h-9 px-3.5"
-              >
-                <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-                Reactivate
-              </Button>
+            {!isCurrentAdmin && (
+              student.is_active ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setConfirmDeactivate(true);
+                    setDeactivateError(null);
+                  }}
+                  className="rounded-full text-xs font-semibold h-9 px-3.5 border-red-200 text-red-600 hover:bg-red-50"
+                >
+                  <UserX className="w-3.5 h-3.5 mr-1.5" />
+                  Deactivate
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleToggleActive}
+                  isLoading={isSubmittingToggle}
+                  className="rounded-full text-xs font-semibold h-9 px-3.5"
+                >
+                  <UserCheck className="w-3.5 h-3.5 mr-1.5" />
+                  Reactivate
+                </Button>
+              )
             )}
           </div>
         </div>
@@ -306,7 +466,7 @@ export function StudentHistoryView({
 
         {weeks.length === 0 ? (
           <Card className="p-8 text-center text-xs text-[#5E6C87] bg-white border border-[#DDE3EE]">
-            No attendance history recorded yet for this student.
+            No attendance history recorded yet for this account.
           </Card>
         ) : (
           weeks.map((week) => (
@@ -379,16 +539,210 @@ export function StudentHistoryView({
         )}
       </div>
 
+      {/* ITEM 6: ROLE HISTORY CARD AT THE BOTTOM */}
+      <Card className="bg-white border border-[#DDE3EE] rounded-2xl shadow-xs overflow-hidden">
+        <CardHeader className="py-3.5 px-5 border-b border-[#DDE3EE]/70 bg-[#FAFCFF] flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-bold text-[#0B1B3F] flex items-center gap-2">
+            <History className="w-4 h-4 text-[#0B1B3F]" />
+            Role history
+          </CardTitle>
+          <span className="text-xs text-[#5E6C87]">
+            {roleHistory.length} {roleHistory.length === 1 ? "change" : "changes"}
+          </span>
+        </CardHeader>
+        <CardContent className="p-0 divide-y divide-[#DDE3EE]/60">
+          {roleHistory.length === 0 ? (
+            <div className="p-8 text-center text-xs text-[#5E6C87]">
+              No role changes yet.
+            </div>
+          ) : (
+            roleHistory.map((item) => (
+              <div
+                key={item.id}
+                className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F9FBFE]"
+              >
+                <div className="space-y-1">
+                  <div className="font-semibold text-[#0B1B3F] flex items-center gap-2">
+                    {item.action === "Promoted to admin" ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <ShieldCheck className="w-3 h-3 mr-1" />
+                        Promoted to admin
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+                        <ShieldX className="w-3 h-3 mr-1" />
+                        Removed as admin
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-[#5E6C87]">
+                    Changed by: <strong>{item.adminName}</strong>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-[#5E6C87] flex items-center gap-1 sm:self-center">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{item.timestampLagos}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* CONFIRMATION DIALOG: MAKE ADMIN (ITEM 7) */}
+      {targetRoleAction === "admin" && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          onClick={() => {
+            if (!isSubmittingRole) {
+              setTargetRoleAction(null);
+              setRoleModalError(null);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#DDE3EE] shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-[#0B1B3F] border border-blue-200 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-[#0B1B3F]">
+                  Give {student.full_name} admin access?
+                </h3>
+                <p className="text-xs text-[#5E6C87] leading-relaxed">
+                  They will see every student&apos;s attendance, manage accounts, and can promote or remove other admins. Only do this for people you fully trust.
+                </p>
+              </div>
+            </div>
+
+            {/* Red inline alert on server failure (Item 9) */}
+            {roleModalError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span className="flex-1">{roleModalError}</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmittingRole}
+                onClick={() => {
+                  setTargetRoleAction(null);
+                  setRoleModalError(null);
+                }}
+                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                isLoading={isSubmittingRole}
+                disabled={isSubmittingRole}
+                onClick={handleRoleChangeSubmit}
+                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white"
+              >
+                Make admin
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRMATION DIALOG: REMOVE ADMIN (ITEM 8) */}
+      {targetRoleAction === "student" && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          onClick={() => {
+            if (!isSubmittingRole) {
+              setTargetRoleAction(null);
+              setRoleModalError(null);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#DDE3EE] shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center shrink-0">
+                <ShieldX className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-[#0B1B3F]">
+                  Remove admin access from {student.full_name}?
+                </h3>
+                <p className="text-xs text-[#5E6C87] leading-relaxed">
+                  They will become a regular student and lose access to all admin pages immediately.
+                </p>
+              </div>
+            </div>
+
+            {/* Red inline alert on server failure (Item 9) */}
+            {roleModalError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span className="flex-1">{roleModalError}</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmittingRole}
+                onClick={() => {
+                  setTargetRoleAction(null);
+                  setRoleModalError(null);
+                }}
+                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                isLoading={isSubmittingRole}
+                disabled={isSubmittingRole}
+                onClick={handleRoleChangeSubmit}
+                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold bg-red-600 hover:bg-red-700 text-white"
+              >
+                Remove admin
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* DEACTIVATE CONFIRMATION MODAL */}
       {confirmDeactivate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          onClick={() => {
+            if (!isSubmittingToggle) {
+              setConfirmDeactivate(false);
+              setDeactivateError(null);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-red-50 text-[#EF4444] border border-red-200 flex items-center justify-center shrink-0">
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">Deactivate Student</h3>
+                <h3 className="text-base font-bold text-[#0B1B3F]">
+                  Deactivate {student.role === "admin" ? "Administrator" : "Student"}
+                </h3>
                 <p className="text-xs text-[#5E6C87] leading-relaxed">
                   Are you sure you want to deactivate{" "}
                   <strong className="text-[#0B1B3F]">{student.full_name}</strong>? They will be
@@ -397,10 +751,19 @@ export function StudentHistoryView({
               </div>
             </div>
 
+            {deactivateError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+                {deactivateError}
+              </div>
+            )}
+
             <div className="flex items-center gap-2 pt-2">
               <Button
                 variant="outline"
-                onClick={() => setConfirmDeactivate(false)}
+                onClick={() => {
+                  setConfirmDeactivate(false);
+                  setDeactivateError(null);
+                }}
                 disabled={isSubmittingToggle}
                 className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
               >
@@ -421,17 +784,26 @@ export function StudentHistoryView({
 
       {/* RESET PASSWORD MODAL */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          onClick={() => {
+            if (!isSubmittingPassword) {
+              setShowPasswordModal(false);
+              setNewPassword("");
+            }
+          }}
+        >
           <form
             onSubmit={handleResetPassword}
             className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-[#F1F4FB] text-[#0B1B3F] border border-[#DDE3EE] flex items-center justify-center shrink-0">
                 <KeyRound className="w-5 h-5 text-[#00E6FF]" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">Reset Student Password</h3>
+                <h3 className="text-base font-bold text-[#0B1B3F]">Reset Password</h3>
                 <p className="text-xs text-[#5E6C87] leading-relaxed">
                   Set a new temporary password for{" "}
                   <strong className="text-[#0B1B3F]">{student.full_name}</strong>.
@@ -450,7 +822,7 @@ export function StudentHistoryView({
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password (e.g. TempPass2026!)"
-                className="w-full px-3 py-2 text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
+                className="w-full px-3 py-2 min-h-[44px] text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
               />
             </div>
 

@@ -119,6 +119,17 @@ Database migrations are stored in `supabase/migrations/`:
 1. `001_init.sql`: Core schema (`profiles`, `attendance`), indexes, and RLS policies.
 2. `002_student_enrollment.sql`: Enrollment status (`pending`, `approved`, `rejected`).
 3. `003_auth_trigger_and_role_changes.sql`: `role_changes` audit table and security-definer trigger `handle_new_user()` on `auth.users`.
+4. `004_atomic_role_and_deactivate.sql`: Race-safe atomic PostgreSQL functions `change_user_role` and `deactivate_user` utilizing transaction advisory locks (`pg_advisory_xact_lock`).
+### The `role_changes` Audit Table
+All role changes (promotions and demotions) are recorded with full auditability:
+- `id` (uuid, primary key)
+- `changed_by` (uuid, foreign key to `profiles.id`): The admin performing the action.
+- `target_user` (uuid, foreign key to `profiles.id`): The user whose role was altered.
+- `old_role` (text: `'student'` | `'admin'`)
+- `new_role` (text: `'student'` | `'admin'`)
+- `created_at` (timestamptz, default `now()`)
+
+**Security & RLS**: `role_changes` has Row-Level Security enabled. It can only be queried by administrators (`is_admin()` policy) and cannot be inserted, updated, or deleted directly by any authenticated client; writes occur strictly on the server via elevated service role credentials.
 
 Apply migrations using the Supabase CLI or SQL Editor:
 ```bash
@@ -138,7 +149,16 @@ supabase db push
    - Enabled on `profiles`, `attendance`, and `role_changes`. Students can only SELECT their own record; admins can query all.
 4. **Trigger-Enforced Role Security**:
    - Self-registration on `auth.users` triggers `handle_new_user()`, which strictly hardcodes `role='student'` and `status='pending'`. Any user metadata attempting to forge `role='admin'` is discarded.
-5. **On-Demand QR Code Rendering**:
+5. **Admin Role Promotion & Demotion Rules**:
+   - **Caller Verification**: Server-side `requireAdmin()` inspects the caller's live database profile on every request. Callers with role `'student'`, unapproved status, or deactivated accounts get HTTP 403.
+   - **Target Eligibility**: Only active, approved students can be promoted to admin. Pending and rejected accounts stay in `/admin/approvals`.
+   - **Self-Modification Block**: Admins cannot change their own role or deactivate their own account (HTTP 400).
+   - **Race-Safe Last-Admin Protection**: Demoting or deactivating the last remaining active admin is blocked atomically via transaction advisory locks and concurrency mutexes (HTTP 400). Two admins demoting each other simultaneously will leave at least one active admin.
+   - **Instant Access Invalidation**: Role changes take effect immediately on next page load without requiring session re-login.
+   - **Transactional Audit Rollback**: If logging into `role_changes` fails, the role mutation automatically rolls back.
+   - **Rate Limiting**: Role modifications are rate-limited to 20 requests per minute per admin (HTTP 429).
+6. **On-Demand QR Code Rendering**:
    - QR codes are generated dynamically on the server at `/admin/qr` as data URLs. Raw secrets are never sent as plain text or saved as image files in the repository.
-6. **No Secrets in Repo**:
+7. **No Secrets in Repo**:
    - `.env.local` is ignored in `.gitignore`. Production secrets reside solely in the Vercel Project Settings.
+

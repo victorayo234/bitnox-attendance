@@ -70,6 +70,14 @@ export default async function AdminLayout({
 
           {/* User info & Logout */}
           <div className="flex items-center gap-3">
+            {/* Student view link for admins (Item 21) */}
+            <Link
+              href="/api/view-mode?mode=student"
+              className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-full border border-border text-muted hover:text-primary hover:bg-slate-50 transition-colors"
+            >
+              Student view
+            </Link>
+
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-primary">
                 {firstName}

@@ -79,14 +79,33 @@ If a student leaves Bitnox or pauses their enrollment:
 2. Find their row and click **Deactivate**.
 3. Deactivated students are immediately blocked from logging in, scanning, and appearing in daily counts. You can click **Reactivate** at any time.
 
-### C. Making Another Admin & Removing Admins
-> **IMPORTANT WARNING**: Grant admin privileges **ONLY** to people you trust completely. Admins have full access to attendance records, student details, and QR codes.
+### C. Making Someone an Admin (Promotion & Demotion)
 
+> ⚠️ **CRITICAL WARNING — ONLY PROMOTE PEOPLE YOU FULLY TRUST**:
+> When you give someone administrator access, they will see every student's attendance records, manage accounts, reset passwords, access raw printable QR codes, and can promote or remove other administrators. Only do this for staff members or co-owners you fully trust.
+
+#### How to Promote a Student to Admin (Step-by-Step)
+1. Open the Students Directory at `/admin/students` (or tap **Students** in the navigation bar).
+2. Locate the student you wish to promote. They must be an **approved**, **active** student (pending enrollments must first be approved under `/admin/approvals`).
+3. Click the **Make admin** button on their row (or tap the **...** menu on mobile and select **Make admin**). You can also do this from their individual details page at `/admin/students/[id]`.
+4. A confirmation dialog will appear: *"Give [Name] admin access? They will see every student's attendance, manage accounts, and can promote or remove other admins. Only do this for people you fully trust."*
+5. Click the navy **Make admin** button.
+6. The dialog will close and a green confirmation message (*"[Name] is now an admin."*) will appear. The student row immediately gains a navy **Admin** badge and moves to the top of the directory.
+7. If that person is currently logged in on their phone or laptop, the next time they refresh their browser, they will automatically land directly inside the Admin Console. No re-login or password reset is required.
+
+#### How to Remove Admin Access (Demotion)
 1. Go to `/admin/students`.
-2. Locate the student you wish to promote (they must be an active, approved student).
-3. Click **Make admin** and confirm.
-4. To remove an admin, click **Remove admin** on their row.
-   *(Note: The system mathematically prevents removing the last remaining admin, ensuring the hub is never locked out.)*
+2. Locate the administrator you want to demote.
+3. Click **Remove admin** on their row (or tap **...** on mobile).
+4. A confirmation dialog will appear: *"Remove admin access from [Name]? They will become a regular student and lose access to all admin pages immediately."*
+5. Click the red **Remove admin** button.
+6. The user is immediately demoted back to a standard student. On their very next click or page refresh, they lose access to all admin pages and are redirected away immediately.
+
+#### Core Security Rules for Administrators
+- **The Last Admin Rule**: The system strictly prevents removing or deactivating the last remaining active administrator. Even if two administrators attempt to demote each other at the exact same millisecond, the database atomically blocks one, ensuring the hub is never locked out.
+- **You Cannot Change Your Own Role**: An administrator cannot remove their own admin privileges or deactivate their own account from the directory.
+- **Recommendation**: **Always keep at least TWO active administrators** configured in the system. Having two trusted admins guarantees you can always manage the hub if one person loses their phone or is temporarily unavailable.
+- **Audit Trail**: Every promotion and demotion is permanently logged in the **Admin activity** section at the bottom of `/admin/students` and on the person's profile page, recording exactly who made the change and at what time (Africa/Lagos clock).
 
 ### D. Forgotten Passwords & Self-Service Reset
 If a student or administrator forgets their password:

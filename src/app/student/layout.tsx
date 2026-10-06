@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Badge, Card, CardContent, LogoutButton } from "@/components";
+import { Badge, LogoutButton } from "@/components";
 import { ScanGate } from "@/components/ScanGate";
 import { StudentDesktopNav, StudentMobileNav } from "@/components/StudentNav";
 import { StudentBoundaryWatcher } from "@/components/StudentBoundaryWatcher";
@@ -14,7 +14,7 @@ import {
   toLagosDateString,
   getGateState,
 } from "@/lib/attendance-rules";
-import { Clock, AlertOctagon } from "lucide-react";
+import { Shield, ArrowRight } from "lucide-react";
 
 export default async function StudentLayout({
   children,
@@ -45,8 +45,13 @@ export default async function StudentLayout({
     redirect("/login?role=student");
   }
 
-  // If user is an admin, redirect them to admin area
-  if (profile.role !== "student") {
+  // Check if an admin is explicitly using student preview mode
+  const cookieStore = await cookies();
+  const isStudentViewForAdmin =
+    cookieStore.get("admin_student_view")?.value === "1";
+
+  // Item 21: A student promoted while logged in lands on the admin console upon refreshing
+  if (profile.role !== "student" && !isStudentViewForAdmin) {
     redirect("/admin");
   }
 
@@ -58,7 +63,6 @@ export default async function StudentLayout({
   }
 
   // 4. Compute Gate State for Approved Students
-  const cookieStore = await cookies();
   const mockTimeCookie =
     process.env.NODE_ENV !== "production"
       ? cookieStore.get("dev_mock_time")?.value
@@ -81,7 +85,8 @@ export default async function StudentLayout({
 
   // 5. IF GATE_BLOCKING: render ONLY the full-screen <ScanGate />
   // Children are NOT rendered at all so it cannot be bypassed in dev tools
-  if (gateState === "GATE_BLOCKING") {
+  // (Admins in preview bypass gate blocking so they can inspect student pages)
+  if (gateState === "GATE_BLOCKING" && profile.role === "student") {
     return <ScanGate />;
   }
 
@@ -90,6 +95,23 @@ export default async function StudentLayout({
     <div className="min-h-screen bg-[#F5F8FE] flex flex-col justify-between">
       {/* Background Boundary Watcher: re-evaluates at 08:00, 12:00, and every 60s */}
       <StudentBoundaryWatcher />
+
+      {/* Admin Preview Mode Top Bar (Item 21) */}
+      {profile.role === "admin" && (
+        <div className="bg-[#0B1B3F] text-white px-4 py-2 text-xs flex items-center justify-between border-b border-[#00E6FF]/20 shadow-xs">
+          <div className="flex items-center gap-2">
+            <Shield className="w-3.5 h-3.5 text-[#00E6FF]" />
+            <span>Viewing student portal as Administrator</span>
+          </div>
+          <Link
+            href="/api/view-mode?mode=admin"
+            className="font-bold text-[#00E6FF] hover:underline flex items-center gap-1"
+          >
+            Go to admin console
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Top Header with Desktop Navigation */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#DDE3EE] shadow-xs">
@@ -112,11 +134,20 @@ export default async function StudentLayout({
           </div>
 
           <div className="flex items-center space-x-3">
+            {profile.role === "admin" && (
+              <Link
+                href="/api/view-mode?mode=admin"
+                className="text-xs font-bold text-[#0B1B3F] bg-[#00E6FF]/20 hover:bg-[#00E6FF]/30 px-3 py-1.5 rounded-full border border-[#00E6FF]/30 transition-colors"
+              >
+                Go to admin console
+              </Link>
+            )}
+
             <span className="hidden sm:inline-block text-xs font-semibold text-[#0B1B3F]">
               {firstName}
             </span>
             <Badge variant="neutral" className="hidden sm:inline-flex">
-              Student
+              {profile.role === "admin" ? "Admin" : "Student"}
             </Badge>
             <LogoutButton />
           </div>

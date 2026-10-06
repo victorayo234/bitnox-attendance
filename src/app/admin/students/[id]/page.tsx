@@ -8,13 +8,18 @@ import {
   getWeekRange,
   TIMEZONE,
 } from "@/lib/attendance-rules";
-import { StudentHistoryView, StudentWeekGroup } from "./StudentHistoryView";
+import {
+  StudentHistoryView,
+  StudentWeekGroup,
+  RoleHistoryItem,
+} from "./StudentHistoryView";
 import { parseISO, format } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
+import { isValidUuid } from "@/lib/role-guard";
 
 export const metadata = {
-  title: "Student History | Bitnox Attendance",
-  description: "Detailed weekly attendance history for student",
+  title: "Account Details & History | Bitnox Attendance",
+  description: "Detailed account history, attendance records, and administrative role tracking",
 };
 
 export default async function StudentDetailPage({
@@ -29,24 +34,24 @@ export default async function StudentDetailPage({
   }
 
   const { id: studentId } = await params;
-  if (!studentId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId)) {
+  if (!studentId || !isValidUuid(studentId)) {
     notFound();
   }
 
   const adminClient = createAdminClient();
 
-  // 2. Fetch student profile
+  // 2. Fetch profile (approved student or admin)
   const { data: student, error: studentError } = await adminClient
     .from("profiles")
     .select("*")
     .eq("id", studentId)
     .maybeSingle();
 
-  if (studentError || !student || student.role !== "student") {
+  if (studentError || !student) {
     notFound();
   }
 
-  // 3. Fetch all attendance records for this student
+  // 3. Fetch all attendance records for this account
   const { data: records, error: recordsError } = await adminClient
     .from("attendance")
     .select("*")
@@ -54,7 +59,7 @@ export default async function StudentDetailPage({
     .order("attendance_date", { ascending: false });
 
   if (recordsError) {
-    throw new Error(`Failed to fetch student attendance: ${recordsError.message}`);
+    throw new Error(`Failed to fetch attendance: ${recordsError.message}`);
   }
 
   const now = lagosNow();
@@ -160,6 +165,45 @@ export default async function StudentDetailPage({
       ? Math.round(((grandPresent + grandLate) / totalEvaluatedDays) * 100)
       : 100;
 
+  // 4. Fetch Role History from role_changes for this user
+  const { data: rawRoleChanges } = await adminClient
+    .from("role_changes")
+    .select("id, changed_by, target_user, old_role, new_role, created_at")
+    .eq("target_user", studentId)
+    .order("created_at", { ascending: false });
+
+  const changerIds = Array.from(
+    new Set((rawRoleChanges || []).map((rc) => rc.changed_by))
+  );
+
+  let changerMap = new Map<string, string>();
+  if (changerIds.length > 0) {
+    const { data: changers } = await adminClient
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", changerIds);
+
+    (changers || []).forEach((c) => {
+      changerMap.set(c.id, c.full_name || c.email || "Administrator");
+    });
+  }
+
+  const roleHistory: RoleHistoryItem[] = (rawRoleChanges || []).map((rc) => {
+    return {
+      id: rc.id,
+      adminName: changerMap.get(rc.changed_by) || "Administrator",
+      action:
+        rc.new_role === "admin"
+          ? "Promoted to admin"
+          : "Removed as admin",
+      timestampLagos: formatInTimeZone(
+        new Date(rc.created_at),
+        TIMEZONE,
+        "MMM d, yyyy 'at' hh:mm a"
+      ),
+    };
+  });
+
   return (
     <StudentHistoryView
       student={student}
@@ -168,6 +212,8 @@ export default async function StudentDetailPage({
       totalLate={grandLate}
       totalAbsent={grandAbsent}
       attendanceRate={attendanceRate}
+      currentAdminId={adminAuth.user.id}
+      roleHistory={roleHistory}
     />
   );
 }
