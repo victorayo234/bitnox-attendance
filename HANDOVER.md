@@ -41,12 +41,30 @@ The table below lists all students for the day with their check-in time, check-o
 ### C. Approving or Rejecting Student Sign-Ups
 When new students register on the website, they cannot access the system until approved:
 1. Click **Approvals** in the top navigation bar (`/admin/approvals`).
-2. You will see all students waiting for enrollment review.
-3. Verify the student's name and email.
-4. Click **Approve** to activate their account, or **Reject** if they are not recognized.
-5. Once approved, the student's phone automatically redirects to their attendance dashboard within 30 seconds.
+2. You will see three tabs: **Pending**, **Rejected**, and **History**. The **Pending** tab opens by default.
+3. Verify the student's name and email in the **Pending** tab.
+4. Click **Approve** to immediately activate their account, or **Reject** to decline the enrollment.
+5. Clicking **Reject** opens a dialog where you can optionally enter an internal reason note (up to 200 characters).
+6. Once approved, the student's phone automatically redirects to their attendance dashboard within 30 seconds.
 
-### D. Marking Attendance Manually (If a Student's Phone or Camera Fails)
+### D. Rejected Sign-Ups & "Approve Later"
+Rejected accounts are **never deleted or lost**. They remain safely stored in the system so that applicants can be reconsidered at any time:
+1. **Finding Rejected Accounts**: Click the **Rejected** tab at the top of `/admin/approvals`. Every rejected account is listed with their name, email, request date, rejection date, the administrator who rejected them, and any internal note.
+2. **Approving Someone Later**:
+   - Find the applicant in the **Rejected** tab.
+   - Click the **Approve** button on their row.
+   - A confirmation dialog will pop up: *"Approve [Name]? They were rejected on [Date]. Once approved they can log in and use attendance."*
+   - Click **Approve** to confirm.
+   - The student is immediately approved without needing to sign up again. If they have their browser open on the waiting screen, their phone will automatically transition into the student dashboard within 30 seconds.
+3. **Internal Reason Notes (Admin-Only)**:
+   - Any reason note entered during rejection is **strictly private to administrators**.
+   - Reason notes are never displayed to students, never included in student API responses, and never stored where students can read them.
+4. **Reading Decision History**:
+   - **Per-Student Timeline**: In the **Rejected** tab, click the **History** button on any student's row to expand their full chronological decision timeline inline.
+   - **Hub-Wide History**: Click the **History** tab at the top of `/admin/approvals` to view the latest 50 decisions recorded across the hub, with instant filtering for **All**, **Approved**, or **Rejected**.
+
+
+### E. Marking Attendance Manually (If a Student's Phone or Camera Fails)
 If a student forgets their phone, has low battery, or camera issues:
 1. Go to `/admin`.
 2. Find the student in the table.
@@ -54,7 +72,7 @@ If a student forgets their phone, has low battery, or camera issues:
 4. Confirm the prompt. The record will be updated immediately with a small **manual** badge for transparency.
 5. If an accidental entry was made, click **Clear record** to reset that student's status for the day.
 
-### E. Viewing Weekly Attendance
+### F. Viewing Weekly Attendance
 1. Click **Weekly** in the navigation bar (`/admin/weekly`).
 2. Use the **Previous Week** and **Next Week** buttons to browse past weeks.
 3. The matrix shows Monday to Friday for every student:

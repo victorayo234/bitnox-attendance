@@ -18,10 +18,8 @@ export function PendingClient({ fullName, email, status }: PendingClientProps) {
   const [isPending, startTransition] = useTransition();
   const [countdown, setCountdown] = useState(30);
 
-  // Auto re-check every 30 seconds
+  // Auto re-check every 30 seconds (for both pending and rejected status)
   useEffect(() => {
-    if (status !== "pending") return;
-
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -35,7 +33,7 @@ export function PendingClient({ fullName, email, status }: PendingClientProps) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [status, router]);
+  }, [router]);
 
   function handleCheckAgain() {
     setCountdown(30);
@@ -102,7 +100,12 @@ export function PendingClient({ fullName, email, status }: PendingClientProps) {
 
               {/* Rejected user only sees Logout */}
               <div className="pt-2">
-                <LogoutButton variant="secondary" fullWidth className="h-10 text-sm font-medium" />
+                <LogoutButton
+                  variant="secondary"
+                  showText={true}
+                  fullWidth
+                  className="h-[44px] text-sm font-medium"
+                />
               </div>
             </div>
           ) : (

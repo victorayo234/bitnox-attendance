@@ -120,6 +120,43 @@ Database migrations are stored in `supabase/migrations/`:
 2. `002_student_enrollment.sql`: Enrollment status (`pending`, `approved`, `rejected`).
 3. `003_auth_trigger_and_role_changes.sql`: `role_changes` audit table and security-definer trigger `handle_new_user()` on `auth.users`.
 4. `004_atomic_role_and_deactivate.sql`: Race-safe atomic PostgreSQL functions `change_user_role` and `deactivate_user` utilizing transaction advisory locks (`pg_advisory_xact_lock`).
+5. `004_approval_decisions.sql`: Decision tracking table `approval_decisions`, indexes, backfill, and atomic PostgreSQL function `decide_student_approval`.
+
+### The `approval_decisions` Audit Table
+All student approval and rejection decisions are logged with full auditability:
+- `id` (uuid, primary key, default `gen_random_uuid()`): Unique decision record identifier.
+- `student_id` (uuid, not null, foreign key to `profiles.id` on delete cascade): The applicant decided upon.
+- `decided_by` (uuid, foreign key to `profiles.id` on delete set null): The admin who made the decision (or `null` for legacy decisions recorded before logging began).
+- `decision` (text, check in `('approved', 'rejected')`): The outcome of the decision.
+- `note` (text, max 200 characters): Optional internal reason note, strictly admin-only and never visible to the student.
+- `previous_status` (text): The profile status immediately preceding this decision.
+- `created_at` (timestamptz, default `now()`): Lagos-pinned UTC timestamp of the decision.
+
+**Indexes**:
+- `(student_id, created_at DESC)`: High-performance lookup of a student's chronological decision history.
+- `(created_at)`: Efficient querying of hub-wide recent audit history.
+
+**Security & RLS**:
+- Row-Level Security is enabled.
+- Admins can `SELECT` all rows via the existing `is_admin()` policy.
+- No `INSERT`, `UPDATE`, or `DELETE` policies exist for any authenticated or anonymous client; all writes occur strictly on the server with elevated service role credentials.
+- Students cannot read or query this table under any circumstances.
+
+### Allowed Status Transitions (Approvals Route)
+
+The server enforces strict state transitions. The UI is never trusted.
+
+| Current Status | Requested Decision | HTTP Status | Outcome / Response |
+|---|---|---|---|
+| `pending` | `approved` | `200 OK` | Allowed. Profile status set to `approved`, active = true. Audit row written. |
+| `pending` | `rejected` | `200 OK` | Allowed. Profile status set to `rejected`, active = true. Audit row written with optional note. |
+| `rejected` | `approved` | `200 OK` | Allowed ("Approve Later"). Profile status set to `approved`. Audit row written. |
+| `approved` | `rejected` | `409 Conflict` | Blocked ("This request has already been decided."). Approved accounts are managed under `/admin/students`. |
+| `approved` | `approved` | `409 Conflict` | Blocked ("This request has already been decided."). |
+| `rejected` | `rejected` | `409 Conflict` | Blocked ("Only rejected requests can be approved from here."). |
+
+*All decisions execute with concurrency locks and guarded updates (`WHERE status = expected previous status`) in a single rollback-safe database transaction.*
+
 ### The `role_changes` Audit Table
 All role changes (promotions and demotions) are recorded with full auditability:
 - `id` (uuid, primary key)

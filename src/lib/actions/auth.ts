@@ -160,9 +160,16 @@ export async function signupStudentAction(
   });
 
   if (createError) {
-    if (createError.message.toLowerCase().includes("already registered")) {
+    const msg = createError.message.toLowerCase();
+    if (
+      msg.includes("already registered") ||
+      msg.includes("already exists") ||
+      msg.includes("already in use") ||
+      msg.includes("user already")
+    ) {
       return {
-        error: "An account with this email already exists. Please log in instead.",
+        error:
+          "This email is already registered. If you were told your sign-up was not approved, please contact the admin.",
         timestamp: Date.now(),
       };
     }

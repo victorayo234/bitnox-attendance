@@ -42,3 +42,14 @@ export interface ScanResult {
   status?: AttendanceStatus;
   timestamp?: string;
 }
+
+export interface ApprovalDecision {
+  id: string;
+  student_id: string;
+  decided_by: string | null;
+  decision: "approved" | "rejected";
+  note: string | null;
+  previous_status: string | null;
+  created_at: string;
+}
+
