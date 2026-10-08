@@ -18,7 +18,7 @@ export function Card({
 
   return (
     <div
-      className={`rounded-[16px] border border-border shadow-xs ${bgStyles} ${className}`}
+      className={`rounded-[12px] border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)] ${bgStyles} ${className}`}
       {...props}
     >
       {children}

@@ -34,9 +34,9 @@ export function SignupForm() {
 
   return (
     <div className="w-full max-w-sm mx-auto space-y-6">
-      {/* Brand Header */}
+      {/* Brand Header without underline */}
       <div className="text-center flex flex-col items-center">
-        <Link href="/" className="inline-block transition-opacity hover:opacity-85">
+        <Link href="/" className="inline-block transition-opacity hover:opacity-85" aria-label="Bitnox Attendance Home">
           <Image
             src="/images/bitnox-logo.png"
             alt="Bitnox Attendance"
@@ -46,19 +46,18 @@ export function SignupForm() {
             className="h-9 w-auto object-contain mx-auto"
           />
         </Link>
-        <div className="w-10 h-1 bg-accent rounded-full mt-2 shadow-xs" />
       </div>
 
-      <Card className="bg-white shadow-xs">
+      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
         {/* Waiting for approval screen */}
         {isSubmitted ? (
           <CardContent className="pt-6 pb-6 text-center space-y-5 animate-in fade-in-50">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#F59E0B]/10 text-late border border-[#F59E0B]/20">
-              <Clock className="h-8 w-8 animate-pulse" />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-late border border-amber-200">
+              <Clock className="h-7 w-7" />
             </div>
-            
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold tracking-tight text-primary">
+
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-semibold text-primary">
                 Waiting for approval
               </h2>
               <p className="text-xs text-muted leading-relaxed px-2">
@@ -66,14 +65,14 @@ export function SignupForm() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-soft border border-border p-3 text-xs text-muted">
+            <div className="rounded-lg bg-soft border border-border p-3 text-xs text-muted">
               <span>Status: </span>
               <span className="font-semibold text-late">Pending Admin Review</span>
             </div>
 
             <div className="pt-2">
               <Link href="/login?role=student" className="block w-full">
-                <Button variant="primary" size="lg" fullWidth className="py-3 text-sm">
+                <Button variant="primary" size="md" fullWidth className="h-11 text-sm shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
                   Back to Login
                 </Button>
               </Link>
@@ -82,11 +81,11 @@ export function SignupForm() {
         ) : (
           <>
             <CardHeader className="text-center pb-2">
-              <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-soft text-primary">
-                <GraduationCap className="h-6 w-6" />
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-soft text-primary">
+                <GraduationCap className="h-5 w-5" />
               </div>
-              <CardTitle className="text-xl font-bold text-primary">Student Sign Up</CardTitle>
-              <CardDescription className="text-xs">
+              <CardTitle className="text-xl font-semibold text-primary">Student Sign Up</CardTitle>
+              <CardDescription className="text-xs text-muted">
                 Create your account to record attendance at Bitnox Technology
               </CardDescription>
             </CardHeader>
@@ -94,7 +93,7 @@ export function SignupForm() {
             <CardContent className="pt-4">
               {errorMessage && (
                 <div
-                  className="mb-4 flex items-start gap-2.5 rounded-xl border border-absent/30 bg-absent/10 p-3 text-xs text-absent animate-in fade-in-50"
+                  className="mb-4 flex items-start gap-2.5 rounded-lg border border-absent/30 bg-absent/10 p-3 text-xs text-absent animate-in fade-in-50"
                   role="alert"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -107,9 +106,9 @@ export function SignupForm() {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="fullName"
-                    className="block text-xs font-semibold text-primary"
+                    className="block text-[13px] font-medium text-primary"
                   >
-                    Full Name
+                    Full name
                   </label>
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
@@ -121,7 +120,7 @@ export function SignupForm() {
                       type="text"
                       required
                       placeholder="e.g. Samuel Adeleke"
-                      className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-4 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full h-11 rounded-lg border border-border bg-white pl-10 pr-4 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
                     />
                   </div>
                 </div>
@@ -130,9 +129,9 @@ export function SignupForm() {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="email"
-                    className="block text-xs font-semibold text-primary"
+                    className="block text-[13px] font-medium text-primary"
                   >
-                    Email Address
+                    Email address
                   </label>
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
@@ -144,8 +143,8 @@ export function SignupForm() {
                       type="email"
                       autoComplete="email"
                       required
-                      placeholder="student@bitnox.qc"
-                      className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-4 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      placeholder="you@example.com"
+                      className="w-full h-11 rounded-lg border border-border bg-white pl-10 pr-4 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
                     />
                   </div>
                 </div>
@@ -154,7 +153,7 @@ export function SignupForm() {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="password"
-                    className="block text-xs font-semibold text-primary"
+                    className="block text-[13px] font-medium text-primary"
                   >
                     Password (min. 8 characters)
                   </label>
@@ -170,12 +169,12 @@ export function SignupForm() {
                       required
                       minLength={8}
                       placeholder="••••••••"
-                      className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-11 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full h-11 rounded-lg border border-border bg-white pl-10 pr-11 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-muted hover:text-primary focus:outline-none"
+                      className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-muted hover:text-primary focus:outline-none"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
@@ -191,9 +190,9 @@ export function SignupForm() {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="confirmPassword"
-                    className="block text-xs font-semibold text-primary"
+                    className="block text-[13px] font-medium text-primary"
                   >
-                    Confirm Password
+                    Confirm password
                   </label>
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
@@ -207,13 +206,17 @@ export function SignupForm() {
                       required
                       minLength={8}
                       placeholder="••••••••"
-                      className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-11 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full h-11 rounded-lg border border-border bg-white pl-10 pr-11 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-muted hover:text-primary focus:outline-none"
-                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-muted hover:text-primary focus:outline-none"
+                      aria-label={
+                        showConfirmPassword
+                          ? "Hide confirm password"
+                          : "Show confirm password"
+                      }
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -229,23 +232,23 @@ export function SignupForm() {
                   <Button
                     type="submit"
                     variant="primary"
-                    size="lg"
+                    size="md"
                     fullWidth
                     isLoading={isPending}
-                    className="py-3 text-sm shadow-sm"
+                    className="h-11 text-sm shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
                   >
-                    {isPending ? "Creating Account..." : "Register as Student"}
+                    {isPending ? "Submitting..." : "Sign Up"}
                   </Button>
                 </div>
               </form>
 
-              {/* Already have an account */}
-              <div className="mt-5 border-t border-border pt-4 text-center">
+              {/* Already have an account link */}
+              <div className="mt-4 text-center">
                 <p className="text-xs text-muted">
                   Already have an account?{" "}
                   <Link
                     href="/login?role=student"
-                    className="font-semibold text-primary hover:underline"
+                    className="font-medium text-primary hover:underline"
                   >
                     Student Login
                   </Link>
@@ -256,7 +259,7 @@ export function SignupForm() {
         )}
       </Card>
 
-      {/* Back to Home */}
+      {/* Back to Home Link */}
       <div className="text-center">
         <Link
           href="/"

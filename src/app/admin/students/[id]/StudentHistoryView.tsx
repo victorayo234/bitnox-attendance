@@ -281,7 +281,7 @@ export function StudentHistoryView({
       <div className="flex items-center justify-between">
         <Link
           href="/admin/weekly"
-          className="text-xs font-semibold text-[#5E6C87] hover:text-[#0B1B3F] inline-flex items-center py-2 px-3 rounded-full hover:bg-white transition-colors"
+          className="text-xs font-medium text-[#5E6C87] hover:text-[#0B1B3F] inline-flex items-center py-2 px-3 rounded-lg hover:bg-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
           Back to Weekly Matrix
@@ -289,36 +289,36 @@ export function StudentHistoryView({
 
         <Link
           href="/admin/students"
-          className="text-xs font-semibold text-[#0B1B3F] hover:underline"
+          className="text-xs font-medium text-[#0B1B3F] hover:underline"
         >
           View all accounts
         </Link>
       </div>
 
       {/* Profile Card & Action Bar */}
-      <Card className="bg-white border border-[#DDE3EE] p-5 sm:p-6 rounded-2xl shadow-xs">
+      <div className="bg-white border border-[#DDE3EE] p-5 sm:p-6 rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-[#0B1B3F]">
+              <h1 className="text-xl sm:text-2xl font-semibold text-[#0B1B3F]">
                 {student.full_name}
               </h1>
 
               {/* You tag */}
               {isCurrentAdmin && (
-                <span className="px-2 py-0.5 rounded text-xs font-bold bg-[#00E6FF]/20 text-[#0B1B3F] border border-[#00E6FF]/30">
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#F1F4FB] text-[#0B1B3F] border border-[#DDE3EE]">
                   You
                 </span>
               )}
 
-              {/* Role Badge: Navy Admin pill vs Muted Student pill (Item 5) */}
+              {/* Role Badge: Navy Admin pill vs Muted Student pill */}
               {student.role === "admin" ? (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0B1B3F] text-white shadow-2xs">
-                  <Shield className="w-3 h-3 mr-1 text-[#00E6FF]" />
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0B1B3F]/10 text-[#0B1B3F] border border-[#0B1B3F]/20">
+                  <Shield className="w-3 h-3 mr-1 text-[#0B1B3F]" />
                   Admin
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                   Student
                 </span>
               )}
@@ -348,61 +348,61 @@ export function StudentHistoryView({
             </div>
           </div>
 
-          {/* Account Actions: Make admin / Remove admin, Reset Password, Deactivate (Item 5) */}
+          {/* Account Actions: Make admin / Remove admin, Reset Password, Deactivate */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Make admin / Remove admin */}
             {canMakeAdmin && (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => {
                   setTargetRoleAction("admin");
                   setRoleModalError(null);
                 }}
-                className="rounded-full text-xs font-semibold h-9 px-3.5 border-[#0B1B3F]/30 text-[#0B1B3F] hover:bg-[#0B1B3F] hover:text-white transition-colors"
+                className="h-8 text-[13px] px-3 rounded-lg"
               >
-                <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
+                <ShieldCheck className="w-3.5 h-3.5 mr-1 text-[#0B1B3F]" />
                 Make admin
               </Button>
             )}
 
             {canRemoveAdmin && (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => {
                   setTargetRoleAction("student");
                   setRoleModalError(null);
                 }}
-                className="rounded-full text-xs font-semibold h-9 px-3.5 border-red-200 text-red-600 hover:bg-red-50"
+                className="h-8 text-[13px] px-3 rounded-lg"
               >
-                <ShieldX className="w-3.5 h-3.5 mr-1.5" />
+                <ShieldX className="w-3.5 h-3.5 mr-1" />
                 Remove admin
               </Button>
             )}
 
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setShowPasswordModal(true)}
-              className="rounded-full text-xs font-semibold h-9 px-3.5 border-[#DDE3EE] hover:bg-[#F1F4FB]"
+              className="h-8 text-[13px] px-3 rounded-lg"
             >
-              <KeyRound className="w-3.5 h-3.5 mr-1.5 text-[#0B1B3F]" />
+              <KeyRound className="w-3.5 h-3.5 mr-1 text-[#0B1B3F]" />
               Reset Password
             </Button>
 
             {!isCurrentAdmin && (
               student.is_active ? (
                 <Button
-                  variant="outline"
+                  variant="danger-ghost"
                   size="sm"
                   onClick={() => {
                     setConfirmDeactivate(true);
                     setDeactivateError(null);
                   }}
-                  className="rounded-full text-xs font-semibold h-9 px-3.5 border-red-200 text-red-600 hover:bg-red-50"
+                  className="h-8 text-[13px] px-3 rounded-lg"
                 >
-                  <UserX className="w-3.5 h-3.5 mr-1.5" />
+                  <UserX className="w-3.5 h-3.5 mr-1" />
                   Deactivate
                 </Button>
               ) : (
@@ -411,87 +411,84 @@ export function StudentHistoryView({
                   size="sm"
                   onClick={handleToggleActive}
                   isLoading={isSubmittingToggle}
-                  className="rounded-full text-xs font-semibold h-9 px-3.5"
+                  className="h-8 text-[13px] px-3 rounded-lg"
                 >
-                  <UserCheck className="w-3.5 h-3.5 mr-1.5" />
+                  <UserCheck className="w-3.5 h-3.5 mr-1" />
                   Reactivate
                 </Button>
               )
             )}
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* KPI Stats Row for Student */}
+      {/* KPI Stats Row for Student (Neutral numbers, subtle left accent, no restating captions) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border border-[#DDE3EE] rounded-2xl shadow-xs">
-          <span className="text-[11px] font-semibold text-[#5E6C87] uppercase tracking-wider">
-            Attendance Rate
+        <div className="p-4 bg-white border border-[#DDE3EE] border-l-[3px] border-l-[#0B1B3F] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <span className="text-xs font-medium text-[#5E6C87]">
+            Attendance rate
           </span>
-          <div className="text-2xl font-extrabold text-[#0B1B3F] mt-1">{attendanceRate}%</div>
-          <p className="text-[10px] text-[#5E6C87] mt-0.5">Overall workday average</p>
-        </Card>
+          <div className="text-2xl font-semibold text-[#0B1B3F] mt-1">{attendanceRate}%</div>
+        </div>
 
-        <Card className="p-4 bg-green-50/50 border border-green-200 rounded-2xl shadow-xs">
-          <span className="text-[11px] font-semibold text-[#16A34A] uppercase tracking-wider">
-            Present Days
+        <div className="p-4 bg-white border border-[#DDE3EE] border-l-[3px] border-l-[#16A34A] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <span className="text-xs font-medium text-[#5E6C87]">
+            Present
           </span>
-          <div className="text-2xl font-extrabold text-[#16A34A] mt-1">{totalPresent}</div>
-          <p className="text-[10px] text-[#5E6C87] mt-0.5">On-time arrivals</p>
-        </Card>
+          <div className="text-2xl font-semibold text-[#0B1B3F] mt-1">{totalPresent}</div>
+        </div>
 
-        <Card className="p-4 bg-amber-50/50 border border-amber-200 rounded-2xl shadow-xs">
-          <span className="text-[11px] font-semibold text-[#F59E0B] uppercase tracking-wider">
-            Late Days
+        <div className="p-4 bg-white border border-[#DDE3EE] border-l-[3px] border-l-[#F59E0B] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <span className="text-xs font-medium text-[#5E6C87]">
+            Late
           </span>
-          <div className="text-2xl font-extrabold text-[#F59E0B] mt-1">{totalLate}</div>
-          <p className="text-[10px] text-[#5E6C87] mt-0.5">12:00 PM or later</p>
-        </Card>
+          <div className="text-2xl font-semibold text-[#0B1B3F] mt-1">{totalLate}</div>
+        </div>
 
-        <Card className="p-4 bg-red-50/50 border border-red-200 rounded-2xl shadow-xs">
-          <span className="text-[11px] font-semibold text-[#EF4444] uppercase tracking-wider">
-            Absent Days
+        <div className="p-4 bg-white border border-[#DDE3EE] border-l-[3px] border-l-[#EF4444] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <span className="text-xs font-medium text-[#5E6C87]">
+            Absent
           </span>
-          <div className="text-2xl font-extrabold text-[#EF4444] mt-1">{totalAbsent}</div>
-          <p className="text-[10px] text-[#5E6C87] mt-0.5">Unexcused missed workdays</p>
-        </Card>
+          <div className="text-2xl font-semibold text-[#0B1B3F] mt-1">{totalAbsent}</div>
+        </div>
       </div>
 
       {/* Full Weekly History Grouped by Week */}
       <div className="space-y-4">
-        <h2 className="text-base font-bold text-[#0B1B3F] flex items-center gap-2">
+        <h2 className="text-base font-semibold text-[#0B1B3F] flex items-center gap-2">
           <CalendarRange className="w-4 h-4 text-[#0B1B3F]" />
-          Attendance History by Week
+          Attendance history by week
         </h2>
 
         {weeks.length === 0 ? (
-          <Card className="p-8 text-center text-xs text-[#5E6C87] bg-white border border-[#DDE3EE]">
-            No attendance history recorded yet for this account.
-          </Card>
+          <div className="rounded-[12px] bg-white border border-[#DDE3EE] p-8 text-center flex flex-col items-center justify-center space-y-2 shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+            <CalendarRange className="w-5 h-5 text-[#5E6C87]" />
+            <p className="text-sm text-[#5E6C87]">No attendance history recorded yet for this account.</p>
+          </div>
         ) : (
           weeks.map((week) => (
-            <Card
+            <div
               key={week.weekKey}
-              className="bg-white border border-[#DDE3EE] rounded-2xl shadow-xs overflow-hidden"
+              className="bg-white border border-[#DDE3EE] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden"
             >
               {/* Week Header */}
-              <CardHeader className="py-3 px-4 sm:px-5 border-b border-[#DDE3EE]/70 bg-[#FAFCFF] flex flex-row items-center justify-between">
+              <div className="py-3 px-4 sm:px-5 border-b border-[#DDE3EE] bg-[#F1F4FB]/50 flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-xs sm:text-sm font-bold text-[#0B1B3F]">
+                  <h3 className="text-xs sm:text-sm font-semibold text-[#0B1B3F]">
                     {week.weekLabel}
-                  </CardTitle>
+                  </h3>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-semibold">
-                  <span className="text-[#16A34A]">{week.totals.present} Present</span>
-                  <span className="text-gray-300">•</span>
-                  <span className="text-[#F59E0B]">{week.totals.late} Late</span>
-                  <span className="text-gray-300">•</span>
-                  <span className="text-[#EF4444]">{week.totals.absent} Absent</span>
+                <div className="flex items-center gap-2 text-xs text-[#5E6C87]">
+                  <span>{week.totals.present} present</span>
+                  <span>•</span>
+                  <span>{week.totals.late} late</span>
+                  <span>•</span>
+                  <span>{week.totals.absent} absent</span>
                 </div>
-              </CardHeader>
+              </div>
 
               {/* Day Rows */}
-              <CardContent className="p-0 divide-y divide-[#DDE3EE]/60">
+              <div className="p-0 divide-y divide-[#DDE3EE]/60">
                 {week.days.map((day) => {
                   let badgeVariant: "present" | "late" | "absent" | "neutral" = "neutral";
                   if (day.status === "Present") badgeVariant = "present";
@@ -501,11 +498,11 @@ export function StudentHistoryView({
                   return (
                     <div
                       key={day.date}
-                      className="p-3.5 sm:px-5 flex items-center justify-between text-xs hover:bg-[#F9FBFE] transition-colors"
+                      className="p-3.5 sm:px-5 flex items-center justify-between text-xs hover:bg-[#F1F4FB]/30 transition-colors"
                     >
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#0B1B3F]">{day.dayName}</span>
+                          <span className="font-semibold text-[#0B1B3F]">{day.dayName}</span>
                           <span className="text-[#5E6C87]">
                             {format(parseISO(day.date), "MMM d, yyyy")}
                           </span>
@@ -525,7 +522,7 @@ export function StudentHistoryView({
                           {day.status}
                         </Badge>
                         {day.rec?.marked_by_admin && (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                             manual
                           </span>
                         )}
@@ -533,24 +530,24 @@ export function StudentHistoryView({
                     </div>
                   );
                 })}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))
         )}
       </div>
 
       {/* ITEM 6: ROLE HISTORY CARD AT THE BOTTOM */}
-      <Card className="bg-white border border-[#DDE3EE] rounded-2xl shadow-xs overflow-hidden">
-        <CardHeader className="py-3.5 px-5 border-b border-[#DDE3EE]/70 bg-[#FAFCFF] flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-bold text-[#0B1B3F] flex items-center gap-2">
+      <div className="bg-white border border-[#DDE3EE] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden">
+        <div className="py-3.5 px-5 border-b border-[#DDE3EE] bg-[#F1F4FB]/50 flex flex-row items-center justify-between">
+          <h3 className="text-sm font-semibold text-[#0B1B3F] flex items-center gap-2">
             <History className="w-4 h-4 text-[#0B1B3F]" />
             Role history
-          </CardTitle>
+          </h3>
           <span className="text-xs text-[#5E6C87]">
             {roleHistory.length} {roleHistory.length === 1 ? "change" : "changes"}
           </span>
-        </CardHeader>
-        <CardContent className="p-0 divide-y divide-[#DDE3EE]/60">
+        </div>
+        <div className="p-0 divide-y divide-[#DDE3EE]/60">
           {roleHistory.length === 0 ? (
             <div className="p-8 text-center text-xs text-[#5E6C87]">
               No role changes yet.
@@ -559,24 +556,24 @@ export function StudentHistoryView({
             roleHistory.map((item) => (
               <div
                 key={item.id}
-                className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F9FBFE]"
+                className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F1F4FB]/30"
               >
                 <div className="space-y-1">
                   <div className="font-semibold text-[#0B1B3F] flex items-center gap-2">
                     {item.action === "Promoted to admin" ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#0B1B3F]/10 text-[#0B1B3F] border border-[#0B1B3F]/20">
                         <ShieldCheck className="w-3 h-3 mr-1" />
                         Promoted to admin
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20">
                         <ShieldX className="w-3 h-3 mr-1" />
                         Removed as admin
                       </span>
                     )}
                   </div>
                   <div className="text-[11px] text-[#5E6C87]">
-                    Changed by: <strong>{item.adminName}</strong>
+                    Changed by: <strong className="text-[#0B1B3F]">{item.adminName}</strong>
                   </div>
                 </div>
 
@@ -587,10 +584,10 @@ export function StudentHistoryView({
               </div>
             ))
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* CONFIRMATION DIALOG: MAKE ADMIN (ITEM 7) */}
+      {/* CONFIRMATION DIALOG: MAKE ADMIN */}
       {targetRoleAction === "admin" && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
@@ -602,15 +599,15 @@ export function StudentHistoryView({
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#DDE3EE] shadow-2xl space-y-4"
+            className="bg-white rounded-[12px] max-w-md w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-[#0B1B3F] border border-blue-200 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-[10px] bg-[#F1F4FB] text-[#0B1B3F] border border-[#DDE3EE] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 text-[#0B1B3F]" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">
+                <h3 className="text-base font-semibold text-[#0B1B3F]">
                   Give {student.full_name} admin access?
                 </h3>
                 <p className="text-xs text-[#5E6C87] leading-relaxed">
@@ -619,10 +616,9 @@ export function StudentHistoryView({
               </div>
             </div>
 
-            {/* Red inline alert on server failure (Item 9) */}
             {roleModalError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg text-xs text-[#EF4444] font-medium flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
                 <span className="flex-1">{roleModalError}</span>
               </div>
             )}
@@ -630,23 +626,25 @@ export function StudentHistoryView({
             <div className="flex items-center gap-2 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
+                size="md"
                 disabled={isSubmittingRole}
                 onClick={() => {
                   setTargetRoleAction(null);
                   setRoleModalError(null);
                 }}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
                 variant="primary"
+                size="md"
                 isLoading={isSubmittingRole}
                 disabled={isSubmittingRole}
                 onClick={handleRoleChangeSubmit}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Make admin
               </Button>
@@ -655,7 +653,7 @@ export function StudentHistoryView({
         </div>
       )}
 
-      {/* CONFIRMATION DIALOG: REMOVE ADMIN (ITEM 8) */}
+      {/* CONFIRMATION DIALOG: REMOVE ADMIN */}
       {targetRoleAction === "student" && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
@@ -667,15 +665,15 @@ export function StudentHistoryView({
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#DDE3EE] shadow-2xl space-y-4"
+            className="bg-white rounded-[12px] max-w-md w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-[10px] bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 flex items-center justify-center shrink-0">
                 <ShieldX className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">
+                <h3 className="text-base font-semibold text-[#0B1B3F]">
                   Remove admin access from {student.full_name}?
                 </h3>
                 <p className="text-xs text-[#5E6C87] leading-relaxed">
@@ -684,10 +682,9 @@ export function StudentHistoryView({
               </div>
             </div>
 
-            {/* Red inline alert on server failure (Item 9) */}
             {roleModalError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg text-xs text-[#EF4444] font-medium flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
                 <span className="flex-1">{roleModalError}</span>
               </div>
             )}
@@ -695,23 +692,25 @@ export function StudentHistoryView({
             <div className="flex items-center gap-2 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
+                size="md"
                 disabled={isSubmittingRole}
                 onClick={() => {
                   setTargetRoleAction(null);
                   setRoleModalError(null);
                 }}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
                 variant="danger"
+                size="md"
                 isLoading={isSubmittingRole}
                 disabled={isSubmittingRole}
                 onClick={handleRoleChangeSubmit}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold bg-red-600 hover:bg-red-700 text-white"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Remove admin
               </Button>
@@ -732,15 +731,15 @@ export function StudentHistoryView({
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
+            className="bg-white rounded-[12px] max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-50 text-[#EF4444] border border-red-200 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-[10px] bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 flex items-center justify-center shrink-0">
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">
+                <h3 className="text-base font-semibold text-[#0B1B3F]">
                   Deactivate {student.role === "admin" ? "Administrator" : "Student"}
                 </h3>
                 <p className="text-xs text-[#5E6C87] leading-relaxed">
@@ -752,28 +751,30 @@ export function StudentHistoryView({
             </div>
 
             {deactivateError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+              <div className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg text-xs text-[#EF4444] font-medium">
                 {deactivateError}
               </div>
             )}
 
             <div className="flex items-center gap-2 pt-2">
               <Button
-                variant="outline"
+                variant="secondary"
+                size="md"
                 onClick={() => {
                   setConfirmDeactivate(false);
                   setDeactivateError(null);
                 }}
                 disabled={isSubmittingToggle}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 variant="danger"
+                size="md"
                 onClick={handleToggleActive}
                 isLoading={isSubmittingToggle}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Yes, Deactivate
               </Button>
@@ -795,15 +796,15 @@ export function StudentHistoryView({
         >
           <form
             onSubmit={handleResetPassword}
-            className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
+            className="bg-white rounded-[12px] max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#F1F4FB] text-[#0B1B3F] border border-[#DDE3EE] flex items-center justify-center shrink-0">
-                <KeyRound className="w-5 h-5 text-[#00E6FF]" />
+              <div className="w-10 h-10 rounded-[10px] bg-[#F1F4FB] text-[#0B1B3F] border border-[#DDE3EE] flex items-center justify-center shrink-0">
+                <KeyRound className="w-5 h-5 text-[#0B1B3F]" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">Reset Password</h3>
+                <h3 className="text-base font-semibold text-[#0B1B3F]">Reset Password</h3>
                 <p className="text-xs text-[#5E6C87] leading-relaxed">
                   Set a new temporary password for{" "}
                   <strong className="text-[#0B1B3F]">{student.full_name}</strong>.
@@ -812,8 +813,8 @@ export function StudentHistoryView({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-[#5E6C87]">
-                New Temporary Password (min 8 characters)
+              <label className="text-[13px] font-medium text-[#5E6C87]">
+                New temporary password (min 8 characters)
               </label>
               <input
                 type="text"
@@ -822,28 +823,30 @@ export function StudentHistoryView({
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password (e.g. TempPass2026!)"
-                className="w-full px-3 py-2 min-h-[44px] text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
+                className="w-full px-3 h-11 text-sm border border-[#DDE3EE] rounded-lg bg-white focus:outline-none focus:border-[#0B1B3F] focus:ring-1 focus:ring-[#0B1B3F]"
               />
             </div>
 
             <div className="flex items-center gap-2 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
+                size="md"
                 onClick={() => {
                   setShowPasswordModal(false);
                   setNewPassword("");
                 }}
                 disabled={isSubmittingPassword}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 variant="primary"
+                size="md"
                 isLoading={isSubmittingPassword}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1 h-10 text-sm font-medium rounded-lg"
               >
                 Set Password
               </Button>

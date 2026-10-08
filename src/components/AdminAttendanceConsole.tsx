@@ -13,17 +13,17 @@ import {
   Users,
   UserCheck,
   LogOut,
-  UserX,
+  Clock,
   Search,
   RefreshCw,
   Calendar,
   CheckCircle2,
   AlertTriangle,
-  Clock,
   Trash2,
   Check,
-  ChevronRight,
   X,
+  ChevronLeft,
+  ChevronRight,
   ShieldAlert,
 } from "lucide-react";
 
@@ -47,6 +47,17 @@ interface ToastState {
   message: string;
 }
 
+function getInitials(name: string): string {
+  if (!name) return "S";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function formatTimeWithoutSeconds(timeStr: string) {
+  return timeStr.replace(/:\d{2}(\s*[AP]M)/i, "$1");
+}
+
 export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsoleProps) {
   const [data, setData] = useState<AttendanceConsoleData>(initialData);
   const [selectedDate, setSelectedDate] = useState<string>(initialData.selectedDate);
@@ -55,9 +66,8 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>(() => {
     return new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
-      second: "2-digit",
       hour12: true,
     });
   });
@@ -101,16 +111,16 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
           setData(json.data);
           setLastUpdated(
             new Date().toLocaleTimeString("en-US", {
-              hour: "2-digit",
+              hour: "numeric",
               minute: "2-digit",
-              second: "2-digit",
               hour12: true,
             })
           );
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isManual) {
-          showToast("error", err.message || "Failed to refresh data");
+          const errorMsg = err instanceof Error ? err.message : "Failed to refresh data";
+          showToast("error", errorMsg);
         }
       } finally {
         if (isManual) setIsRefreshing(false);
@@ -133,6 +143,32 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
     setSelectedDate(newDate);
     fetchData(newDate, true);
   };
+
+  const getPrevDateStr = (dateStr: string) => {
+    const d = new Date(`${dateStr}T12:00:00+01:00`);
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split("T")[0];
+  };
+
+  const getNextDateStr = (dateStr: string) => {
+    const d = new Date(`${dateStr}T12:00:00+01:00`);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  };
+
+  const formattedViewedDate = useMemo(() => {
+    try {
+      const d = new Date(`${selectedDate}T12:00:00+01:00`);
+      return d.toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return selectedDate;
+    }
+  }, [selectedDate]);
 
   // Execute Admin Action
   const handleConfirmAction = async () => {
@@ -179,11 +215,11 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
         showToast("success", `${actionLabel} marked for ${student.name}`);
       }
 
-      // Close modal and refresh current data
       setModalState({ isOpen: false, type: "check_in", student: null, isSubmitting: false });
       await fetchData(selectedDate, false);
-    } catch (err: any) {
-      showToast("error", err.message || "Action failed");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Action failed";
+      showToast("error", errorMsg);
       setModalState((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
@@ -191,7 +227,6 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
   // Filtered Students
   const filteredStudents = useMemo(() => {
     return data.students.filter((student) => {
-      // 1. Search filter
       const matchesSearch =
         searchQuery === "" ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -199,7 +234,6 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
 
       if (!matchesSearch) return false;
 
-      // 2. Chip filter
       if (activeFilter === "all") return true;
       if (activeFilter === "in") return student.isCurrentlyIn;
       if (activeFilter === "out") return student.isCheckedOut;
@@ -236,6 +270,16 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
   const isToday = selectedDate === data.todayDate;
   const isFuture = data.isFutureDate;
 
+  // Proportions for progress bar
+  const totalStudents = data.stats.totalActiveStudents;
+  const arrivedCount = data.stats.currentlyIn + data.stats.checkedOut;
+  const arrivedPercentage =
+    totalStudents > 0 ? Math.round((arrivedCount / totalStudents) * 100) : 0;
+  const checkedOutPct =
+    totalStudents > 0 ? (data.stats.checkedOut / totalStudents) * 100 : 0;
+  const currentlyInPct =
+    totalStudents > 0 ? (data.stats.currentlyIn / totalStudents) * 100 : 0;
+
   return (
     <div className="space-y-6 pb-20">
       {/* Toast Notification Container */}
@@ -265,521 +309,576 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
         ))}
       </div>
 
-      {/* 1. TOP STAT CARDS (Rounded, Bordered, Computed from today's Lagos date) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Total Active Students */}
-        <Card className="bg-white border border-[#DDE3EE] p-4 sm:p-5 rounded-2xl shadow-xs">
-          <div className="flex items-center justify-between text-[#5E6C87] mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Active Students</span>
-            <div className="w-8 h-8 rounded-full bg-[#F1F4FB] text-[#0B1B3F] flex items-center justify-center">
-              <Users className="w-4 h-4 text-[#0B1B3F]" />
+      {/* Page Title & Subtitle */}
+      <div>
+        <h1 className="text-2xl font-semibold text-primary leading-8">Dashboard</h1>
+        <p className="text-sm text-muted mt-0.5 leading-5">{formattedViewedDate}</p>
+      </div>
+
+      {/* Summary Strip (ONE card containing four equal segments separated by 1px hairlines) */}
+      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden">
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-border">
+          {/* Segment 1: Students */}
+          <div className="p-4 sm:p-5 flex items-start gap-3.5">
+            <div className="w-9 h-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[13px] text-muted block leading-[18px]">Students</span>
+              <div className="text-[28px] font-semibold text-primary leading-none">
+                {data.stats.totalActiveStudents}
+              </div>
+              <span className="text-xs text-muted block pt-1">enrolled</span>
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-[#0B1B3F]">
-            {data.stats.totalActiveStudents}
-          </div>
-          <p className="text-[11px] text-[#5E6C87] mt-1">Total approved enrolled</p>
-        </Card>
 
-        {/* Currently In */}
-        <Card className="bg-white border border-[#DDE3EE] p-4 sm:p-5 rounded-2xl shadow-xs">
-          <div className="flex items-center justify-between text-[#5E6C87] mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#16A34A]">
-              Currently In
-            </span>
-            <div className="w-8 h-8 rounded-full bg-green-50 text-[#16A34A] flex items-center justify-center border border-green-200">
+          {/* Segment 2: In now */}
+          <div className="p-4 sm:p-5 flex items-start gap-3.5">
+            <div className="w-9 h-9 rounded-[10px] bg-emerald-50 text-[#16A34A] flex items-center justify-center shrink-0">
               <UserCheck className="w-4 h-4" />
             </div>
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[13px] text-muted block leading-[18px]">In now</span>
+              <div className="text-[28px] font-semibold text-primary leading-none">
+                {data.stats.currentlyIn}
+              </div>
+              <span className="text-xs text-muted block pt-1">
+                of {data.stats.totalActiveStudents} arrived
+              </span>
+            </div>
           </div>
-          <div className="text-3xl font-extrabold text-[#16A34A]">{data.stats.currentlyIn}</div>
-          <p className="text-[11px] text-[#5E6C87] mt-1">Checked in, not out</p>
-        </Card>
 
-        {/* Checked Out */}
-        <Card className="bg-white border border-[#DDE3EE] p-4 sm:p-5 rounded-2xl shadow-xs">
-          <div className="flex items-center justify-between text-[#5E6C87] mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#0B1B3F]">
-              Checked Out
-            </span>
-            <div className="w-8 h-8 rounded-full bg-[#F1F4FB] text-[#0B1B3F] flex items-center justify-center border border-[#DDE3EE]">
+          {/* Segment 3: Checked out */}
+          <div className="p-4 sm:p-5 flex items-start gap-3.5">
+            <div className="w-9 h-9 rounded-[10px] bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
               <LogOut className="w-4 h-4" />
             </div>
-          </div>
-          <div className="text-3xl font-extrabold text-[#0B1B3F]">{data.stats.checkedOut}</div>
-          <p className="text-[11px] text-[#5E6C87] mt-1">Completed day session</p>
-        </Card>
-
-        {/* Not Yet In */}
-        <Card className="bg-white border border-[#DDE3EE] p-4 sm:p-5 rounded-2xl shadow-xs">
-          <div className="flex items-center justify-between text-[#5E6C87] mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#F59E0B]">
-              Not Yet In
-            </span>
-            <div className="w-8 h-8 rounded-full bg-amber-50 text-[#F59E0B] flex items-center justify-center border border-amber-200">
-              <UserX className="w-4 h-4" />
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[13px] text-muted block leading-[18px]">Checked out</span>
+              <div className="text-[28px] font-semibold text-primary leading-none">
+                {data.stats.checkedOut}
+              </div>
+              <span className="text-xs text-muted block pt-1">left for the day</span>
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-[#F59E0B]">{data.stats.notYetIn}</div>
-          <p className="text-[11px] text-[#5E6C87] mt-1">
-            {data.isTodayWorkday ? "No check-in record today" : "Non-workday today"}
-          </p>
-        </Card>
-      </div>
 
-      {/* 2. DATE PICKER & AUTO-REFRESH HEADER */}
-      <Card className="bg-white border border-[#DDE3EE] p-4 sm:p-5 rounded-2xl shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Date Picker Section */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2 bg-[#F1F4FB] border border-[#DDE3EE] px-4 min-h-[44px] rounded-full">
-              <Calendar className="w-4 h-4 text-[#0B1B3F]" />
+          {/* Segment 4: Not yet in */}
+          <div className="p-4 sm:p-5 flex items-start gap-3.5">
+            <div className="w-9 h-9 rounded-[10px] bg-amber-50 text-[#F59E0B] flex items-center justify-center shrink-0">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[13px] text-muted block leading-[18px]">Not yet in</span>
+              <div className="text-[28px] font-semibold text-primary leading-none">
+                {data.stats.notYetIn}
+              </div>
+              <span className="text-xs text-muted block pt-1">still to arrive</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Full width 6px progress bar below segments */}
+        {totalStudents > 0 && (
+          <div className="px-5 pb-4 pt-2 border-t border-border/40 space-y-1.5">
+            <div
+              className="h-1.5 w-full bg-soft rounded-full overflow-hidden flex"
+              role="progressbar"
+              aria-label={`${arrivedPercentage}% arrived: ${data.stats.checkedOut} checked out, ${data.stats.currentlyIn} in now, ${data.stats.notYetIn} not yet in`}
+              aria-valuenow={arrivedPercentage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                style={{ width: `${checkedOutPct}%` }}
+                className="bg-primary h-full transition-all duration-300"
+                title={`Checked out: ${data.stats.checkedOut}`}
+              />
+              <div
+                style={{ width: `${currentlyInPct}%` }}
+                className="bg-[#16A34A] h-full transition-all duration-300"
+                title={`In now: ${data.stats.currentlyIn}`}
+              />
+            </div>
+            <div className="flex justify-end">
+              <span className="text-xs text-muted">{arrivedPercentage}% arrived</span>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Toolbar row: Left = Grouped Date Control; Right = Grouped Status Control */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left: Date Control */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="inline-flex items-center bg-white border border-border rounded-lg p-0.5 shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+            <button
+              type="button"
+              onClick={() => handleDateChange(getPrevDateStr(selectedDate))}
+              className="w-8 h-8 flex items-center justify-center text-muted hover:text-primary hover:bg-soft rounded-md transition-colors"
+              title="Previous day"
+              aria-label="Previous day"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <label className="relative inline-flex items-center gap-2 px-2.5 h-8 text-xs font-medium text-primary hover:bg-soft rounded-md cursor-pointer transition-colors">
+              <Calendar className="w-3.5 h-3.5 text-muted" />
+              <span>{formattedViewedDate}</span>
               <input
                 type="date"
-                aria-label="Attendance date"
+                aria-label="Select attendance date"
                 value={selectedDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="bg-transparent text-xs font-semibold text-[#0B1B3F] focus:outline-none cursor-pointer"
+                onChange={(e) => {
+                  if (e.target.value) handleDateChange(e.target.value);
+                }}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
               />
-            </div>
+            </label>
 
-            {!isToday && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDateChange(data.todayDate)}
-                className="rounded-full text-xs font-semibold min-h-[44px] px-3.5"
-              >
-                Jump to Today
-              </Button>
-            )}
-
-            {isToday ? (
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#16A34A] bg-green-50 border border-green-200 px-3 py-1.5 rounded-full inline-flex items-center min-h-[32px]">
-                Today (Live)
-              </span>
-            ) : isFuture ? (
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full inline-flex items-center min-h-[32px]">
-                Future Date
-              </span>
-            ) : (
-              <span className="text-[11px] font-medium text-[#5E6C87] bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full inline-flex items-center min-h-[32px]">
-                Historical View
-              </span>
-            )}
-          </div>
-
-          {/* Refresh Controls & Last Updated */}
-          <div className="flex items-center gap-3 self-end sm:self-auto">
-            <span className="text-[11px] text-[#5E6C87]">
-              Updated: <strong className="text-[#0B1B3F]">{lastUpdated}</strong>
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchData(selectedDate, true)}
-              disabled={isRefreshing}
-              className="rounded-full min-h-[44px] px-4 text-xs font-medium border-[#DDE3EE] hover:bg-[#F1F4FB]"
+            <button
+              type="button"
+              onClick={() => handleDateChange(getNextDateStr(selectedDate))}
+              disabled={selectedDate >= data.todayDate}
+              className="w-8 h-8 flex items-center justify-center text-muted hover:text-primary hover:bg-soft rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Next day"
+              aria-label="Next day"
             >
-              <RefreshCw
-                className={`w-3.5 h-3.5 mr-1.5 text-[#0B1B3F] ${
-                  isRefreshing ? "animate-spin" : ""
-                }`}
-              />
-              Refresh
-            </Button>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
+
+          {!isToday && (
+            <button
+              type="button"
+              onClick={() => handleDateChange(data.todayDate)}
+              className="h-8 px-2.5 text-xs font-medium text-primary hover:bg-soft rounded-lg transition-colors border border-border bg-white"
+            >
+              Today
+            </button>
+          )}
         </div>
-      </Card>
 
-      {/* 3. SEARCH & FILTER CHIPS */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5E6C87]" />
-            <input
-              type="text"
-              placeholder="Search student by name or email..."
-              aria-label="Search student by name or email"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 min-h-[44px] bg-white border border-[#DDE3EE] rounded-full text-xs font-medium text-[#0B1B3F] placeholder-[#5E6C87] focus:outline-none focus:border-[#0B1B3F] focus:ring-1 focus:ring-[#0B1B3F] transition-all shadow-2xs"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                aria-label="Clear search"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-[#5E6C87] hover:text-[#0B1B3F]"
-              >
-                <X className="w-4 h-4" />
-              </button>
+        {/* Right: Grouped Status Control */}
+        <div className="inline-flex items-center bg-white border border-border rounded-lg shadow-[0_1px_2px_rgba(11,27,63,0.04)] text-xs overflow-hidden self-start sm:self-auto">
+          {/* Segment 1: Live or Past indicator */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5">
+            {isToday ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]" />
+                </span>
+                <span className="font-medium text-primary">Live</span>
+              </>
+            ) : (
+              <>
+                <span className="inline-block h-2 w-2 rounded-full bg-slate-400" />
+                <span className="font-medium text-muted">Viewing past date</span>
+              </>
             )}
           </div>
 
-          {/* Filter Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-            <button
-              onClick={() => setActiveFilter("all")}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
-                activeFilter === "all"
-                  ? "bg-[#0B1B3F] text-white"
-                  : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
-              }`}
-            >
-              All ({filterCounts.all})
-            </button>
+          <span className="h-4 w-[1px] bg-border" aria-hidden="true" />
 
-            <button
-              onClick={() => setActiveFilter("in")}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
-                activeFilter === "in"
-                  ? "bg-[#16A34A] text-white"
-                  : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
-              }`}
-            >
-              In ({filterCounts.in})
-            </button>
-
-            <button
-              onClick={() => setActiveFilter("out")}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
-                activeFilter === "out"
-                  ? "bg-[#0B1B3F] text-white"
-                  : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
-              }`}
-            >
-              Out ({filterCounts.out})
-            </button>
-
-            <button
-              onClick={() => setActiveFilter("not_in")}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
-                activeFilter === "not_in"
-                  ? "bg-[#F59E0B] text-white"
-                  : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
-              }`}
-            >
-              Not yet in ({filterCounts.not_in})
-            </button>
-
-            <button
-              onClick={() => setActiveFilter("late")}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
-                activeFilter === "late"
-                  ? "bg-amber-600 text-white"
-                  : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F1F4FB]"
-              }`}
-            >
-              Late ({filterCounts.late})
-            </button>
+          {/* Segment 2: Updated time without seconds */}
+          <div className="px-3 py-1.5 text-muted">
+            Updated {formatTimeWithoutSeconds(lastUpdated)}
           </div>
+
+          <span className="h-4 w-[1px] bg-border" aria-hidden="true" />
+
+          {/* Segment 3: Refresh icon button */}
+          <button
+            type="button"
+            onClick={() => fetchData(selectedDate, true)}
+            disabled={isRefreshing}
+            className="p-2 text-muted hover:text-primary hover:bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+            title="Refresh attendance data"
+            aria-label="Refresh attendance data"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+          </button>
         </div>
       </div>
 
-      {/* 4. TODAY'S ATTENDANCE TABLE (DESKTOP) & STACKED CARDS (MOBILE) */}
-      <Card className="bg-white border border-[#DDE3EE] rounded-2xl shadow-sm overflow-hidden">
-        {/* Table Header Banner */}
-        <CardHeader className="py-4 px-5 border-b border-[#DDE3EE]/70 bg-[#FAFCFF] flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-bold text-[#0B1B3F]">
-              {isToday ? "Today's Attendance" : `Attendance Records (${selectedDate})`}
-            </CardTitle>
-            <span className="text-xs text-[#5E6C87]">
-              ({filteredStudents.length} of {data.students.length} students)
-            </span>
+      {/* Filters & Search Row */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Segmented Filter Control */}
+        <div className="bg-soft p-1 rounded-lg border border-border inline-flex items-center overflow-x-auto max-w-full scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setActiveFilter("all")}
+            className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap rounded-md transition-all ${
+              activeFilter === "all"
+                ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                : "text-muted hover:text-primary"
+            }`}
+          >
+            All <span className="font-normal text-muted ml-0.5">({filterCounts.all})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveFilter("in")}
+            className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap rounded-md transition-all ${
+              activeFilter === "in"
+                ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                : "text-muted hover:text-primary"
+            }`}
+          >
+            In <span className="font-normal text-muted ml-0.5">({filterCounts.in})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveFilter("out")}
+            className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap rounded-md transition-all ${
+              activeFilter === "out"
+                ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                : "text-muted hover:text-primary"
+            }`}
+          >
+            Out <span className="font-normal text-muted ml-0.5">({filterCounts.out})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveFilter("not_in")}
+            className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap rounded-md transition-all ${
+              activeFilter === "not_in"
+                ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                : "text-muted hover:text-primary"
+            }`}
+          >
+            Not yet in <span className="font-normal text-muted ml-0.5">({filterCounts.not_in})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveFilter("late")}
+            className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap rounded-md transition-all ${
+              activeFilter === "late"
+                ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                : "text-muted hover:text-primary"
+            }`}
+          >
+            Late <span className="font-normal text-muted ml-0.5">({filterCounts.late})</span>
+          </button>
+        </div>
+
+        {/* Search Input: 40px high, 8px radius */}
+        <div className="relative flex-1 max-w-xs">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search student..."
+            aria-label="Search student by name or email"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-10 pl-9 pr-8 bg-white border border-border rounded-lg text-sm text-primary placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-primary p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop Table View & Mobile Cards */}
+      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden">
+        {filteredStudents.length === 0 ? (
+          <div className="py-12 px-4 text-center space-y-2">
+            <Search className="w-6 h-6 text-muted mx-auto" />
+            <p className="text-sm text-muted">No attendance records found for this filter</p>
           </div>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-[#FAFCFF] border-b border-border text-xs uppercase tracking-wider text-muted font-semibold sticky top-0 z-10">
+                  <tr>
+                    <th className="py-3 px-5">Student</th>
+                    <th className="py-3 px-4">Check-in</th>
+                    <th className="py-3 px-4">Check-out</th>
+                    <th className="py-3 px-4">Status</th>
+                    {!isFuture && <th className="py-3 px-5 text-right">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {filteredStudents.map((student) => {
+                    const initials = getInitials(student.name);
+                    const isLate = student.rawStatus === "late";
 
-          <span className="text-[11px] text-[#5E6C87] hidden sm:inline-block">
-            Sorted: In first, then Not Yet In
-          </span>
-        </CardHeader>
+                    return (
+                      <tr
+                        key={student.studentId}
+                        className="hover:bg-[#F9FBFE] transition-colors"
+                      >
+                        {/* Student Column with Avatar */}
+                        <td className="py-3 px-5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0 select-none">
+                              {initials}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium text-primary text-sm truncate">
+                                {student.name}
+                              </div>
+                              <div className="text-xs text-muted truncate">
+                                {student.email}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
 
-        {/* Empty Search Results */}
-        {filteredStudents.length === 0 && (
-          <div className="p-8 text-center space-y-2">
-            <div className="w-12 h-12 rounded-full bg-[#F1F4FB] text-[#5E6C87] flex items-center justify-center mx-auto">
-              <Search className="w-6 h-6" />
+                        {/* Check-In Column with optional Late tag */}
+                        <td className="py-3 px-4 text-sm font-medium text-primary">
+                          {student.checkInFormatted ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              {student.checkInFormatted}
+                              {isLate && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-late border border-amber-200">
+                                  Late
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-muted font-normal">--</span>
+                          )}
+                        </td>
+
+                        {/* Check-Out Column */}
+                        <td className="py-3 px-4 text-sm font-medium text-primary">
+                          {student.checkOutFormatted ? (
+                            <span>{student.checkOutFormatted}</span>
+                          ) : (
+                            <span className="text-muted font-normal">--</span>
+                          )}
+                        </td>
+
+                        {/* Status Column */}
+                        <td className="py-3 px-4">
+                          {renderStatusBadge(student)}
+                        </td>
+
+                        {/* Actions Column (compact buttons, visible, no menu) */}
+                        {!isFuture && (
+                          <td className="py-3 px-5 text-right">
+                            <div className="inline-flex items-center justify-end gap-1.5">
+                              {/* When no check-in record */}
+                              {!student.isCheckedIn && (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    setModalState({
+                                      isOpen: true,
+                                      type: "check_in",
+                                      student,
+                                      isSubmitting: false,
+                                    })
+                                  }
+                                  leftIcon={<Check className="w-3.5 h-3.5" />}
+                                >
+                                  Mark in
+                                </Button>
+                              )}
+
+                              {/* When checked in but not out */}
+                              {student.isCheckedIn && !student.isCheckedOut && (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    setModalState({
+                                      isOpen: true,
+                                      type: "check_out",
+                                      student,
+                                      isSubmitting: false,
+                                    })
+                                  }
+                                  leftIcon={<LogOut className="w-3.5 h-3.5" />}
+                                >
+                                  Mark out
+                                </Button>
+                              )}
+
+                              {/* When a record exists */}
+                              {student.isCheckedIn && (
+                                <Button
+                                  variant="danger-ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    setModalState({
+                                      isOpen: true,
+                                      type: "clear",
+                                      student,
+                                      isSubmitting: false,
+                                    })
+                                  }
+                                  leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                                  title="Clear record"
+                                >
+                                  Clear
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <h3 className="text-sm font-bold text-[#0B1B3F]">No students match your filter</h3>
-            <p className="text-xs text-[#5E6C87]">
-              Try adjusting your search query or selecting a different filter chip.
-            </p>
-          </div>
-        )}
 
-        {/* DESKTOP TABLE VIEW */}
-        {filteredStudents.length > 0 && (
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#F8FAFD] text-[#5E6C87] border-b border-[#DDE3EE] uppercase tracking-wider text-[11px] font-semibold">
-                <tr>
-                  <th className="py-3.5 px-5">Student</th>
-                  <th className="py-3.5 px-4">Check-In</th>
-                  <th className="py-3.5 px-4">Check-Out</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  {!isFuture && <th className="py-3.5 px-5 text-right">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#DDE3EE]/60">
-                {filteredStudents.map((student) => (
-                  <tr
-                    key={student.studentId}
-                    className="hover:bg-[#F9FBFE] transition-colors"
-                  >
-                    {/* Student Info */}
-                    <td className="py-3.5 px-5">
-                      <div className="font-bold text-[#0B1B3F] text-sm">{student.name}</div>
-                      <div className="text-[11px] text-[#5E6C87]">{student.email}</div>
-                    </td>
+            {/* Mobile View: Stacked Cards */}
+            <div className="md:hidden divide-y divide-border/60">
+              {filteredStudents.map((student) => {
+                const initials = getInitials(student.name);
+                const isLate = student.rawStatus === "late";
 
-                    {/* Check-In Time */}
-                    <td className="py-3.5 px-4">
-                      {student.checkInFormatted ? (
-                        <span className="font-semibold text-[#0B1B3F] inline-flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#16A34A]" />
-                          {student.checkInFormatted}
-                        </span>
-                      ) : (
-                        <span className="text-[#5E6C87]">--</span>
-                      )}
-                    </td>
+                return (
+                  <div key={student.studentId} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0">
+                          {initials}
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm text-primary leading-tight">
+                            {student.name}
+                          </div>
+                          <div className="text-xs text-muted mt-0.5 leading-tight">
+                            {student.email}
+                          </div>
+                        </div>
+                      </div>
+                      <div>{renderStatusBadge(student)}</div>
+                    </div>
 
-                    {/* Check-Out Time */}
-                    <td className="py-3.5 px-4">
-                      {student.checkOutFormatted ? (
-                        <span className="font-semibold text-[#0B1B3F] inline-flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#5E6C87]" />
-                          {student.checkOutFormatted}
-                        </span>
-                      ) : (
-                        <span className="text-[#5E6C87]">--</span>
-                      )}
-                    </td>
-
-                    {/* Status Badge & Manual Tag */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {renderStatusBadge(student.status)}
-                        {student.markedByAdmin && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                            manual
+                    {/* Times row */}
+                    <div className="text-xs text-muted flex items-center gap-2 bg-soft px-3 py-2 rounded-lg">
+                      <span>
+                        In {student.checkInFormatted || "--"}
+                        {isLate && (
+                          <span className="ml-1 px-1 py-0.2 rounded text-[10px] font-semibold bg-amber-50 text-late border border-amber-200">
+                            Late
                           </span>
                         )}
-                      </div>
-                    </td>
-
-                    {/* Row Actions (Hidden for future dates) */}
-                    {!isFuture && (
-                      <td className="py-3.5 px-5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* Mark Present / Check In */}
-                          {!student.isCheckedIn && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setModalState({
-                                  isOpen: true,
-                                  type: "check_in",
-                                  student,
-                                  isSubmitting: false,
-                                })
-                              }
-                              className="h-8 px-2.5 text-[11px] rounded-full border-green-200 text-[#16A34A] hover:bg-green-50"
-                            >
-                              <Check className="w-3 h-3 mr-1" />
-                              Mark Present
-                            </Button>
-                          )}
-
-                          {/* Mark Checked Out */}
-                          {student.isCheckedIn && !student.isCheckedOut && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setModalState({
-                                  isOpen: true,
-                                  type: "check_out",
-                                  student,
-                                  isSubmitting: false,
-                                })
-                              }
-                              className="h-8 px-2.5 text-[11px] rounded-full border-[#0B1B3F]/30 text-[#0B1B3F] hover:bg-[#F1F4FB]"
-                            >
-                              <LogOut className="w-3 h-3 mr-1" />
-                              Mark Out
-                            </Button>
-                          )}
-
-                          {/* Clear Record */}
-                          {student.isCheckedIn && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                setModalState({
-                                  isOpen: true,
-                                  type: "clear",
-                                  student,
-                                  isSubmitting: false,
-                                })
-                              }
-                              className="h-8 px-2 text-[11px] rounded-full text-red-600 hover:bg-red-50 hover:text-red-700"
-                              title="Clear student attendance"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* MOBILE STACKED CARDS VIEW (md:hidden) with min 44px tap targets */}
-        {filteredStudents.length > 0 && (
-          <div className="block md:hidden divide-y divide-[#DDE3EE]/60">
-            {filteredStudents.map((student) => (
-              <div key={student.studentId} className="p-4 space-y-3">
-                {/* Header: Name, Email & Status */}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="font-bold text-sm text-[#0B1B3F]">{student.name}</h4>
-                    <p className="text-[11px] text-[#5E6C87]">{student.email}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    {renderStatusBadge(student.status)}
-                    {student.markedByAdmin && (
-                      <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                        manual
                       </span>
+                      <span>·</span>
+                      <span>Out {student.checkOutFormatted || "--"}</span>
+                    </div>
+
+                    {/* Mobile visible action buttons row (min 44px tap targets) */}
+                    {!isFuture && (
+                      <div className="flex items-center gap-2 pt-1">
+                        {!student.isCheckedIn && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setModalState({
+                                isOpen: true,
+                                type: "check_in",
+                                student,
+                                isSubmitting: false,
+                              })
+                            }
+                            className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border bg-white text-xs font-medium text-primary hover:bg-soft"
+                          >
+                            <Check className="w-4 h-4" />
+                            Mark in
+                          </button>
+                        )}
+
+                        {student.isCheckedIn && !student.isCheckedOut && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setModalState({
+                                isOpen: true,
+                                type: "check_out",
+                                student,
+                                isSubmitting: false,
+                              })
+                            }
+                            className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border bg-white text-xs font-medium text-primary hover:bg-soft"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Mark out
+                          </button>
+                        )}
+
+                        {student.isCheckedIn && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setModalState({
+                                isOpen: true,
+                                type: "clear",
+                                student,
+                                isSubmitting: false,
+                              })
+                            }
+                            className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-lg border border-transparent text-xs font-medium text-absent hover:bg-red-50"
+                            title="Clear record"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Clear
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-                </div>
-
-                {/* Timestamps Row */}
-                <div className="flex items-center justify-between text-xs bg-[#F8FAFD] p-2.5 rounded-xl border border-[#DDE3EE]/60">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#16A34A]" />
-                    <span className="text-[#5E6C87]">In:</span>
-                    <strong className="text-[#0B1B3F]">
-                      {student.checkInFormatted || "--"}
-                    </strong>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#5E6C87]" />
-                    <span className="text-[#5E6C87]">Out:</span>
-                    <strong className="text-[#0B1B3F]">
-                      {student.checkOutFormatted || "--"}
-                    </strong>
-                  </div>
-                </div>
-
-                {/* Actions Row (Hidden for future dates, min 44px tap targets) */}
-                {!isFuture && (
-                  <div className="flex items-center gap-2 pt-1">
-                    {!student.isCheckedIn && (
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          setModalState({
-                            isOpen: true,
-                            type: "check_in",
-                            student,
-                            isSubmitting: false,
-                          })
-                        }
-                        className="flex-1 min-h-[44px] text-xs font-semibold rounded-full border-green-200 text-[#16A34A] hover:bg-green-50"
-                      >
-                        <Check className="w-4 h-4 mr-1.5" />
-                        Mark Present
-                      </Button>
-                    )}
-
-                    {student.isCheckedIn && !student.isCheckedOut && (
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          setModalState({
-                            isOpen: true,
-                            type: "check_out",
-                            student,
-                            isSubmitting: false,
-                          })
-                        }
-                        className="flex-1 min-h-[44px] text-xs font-semibold rounded-full border-[#0B1B3F]/30 text-[#0B1B3F] hover:bg-[#F1F4FB]"
-                      >
-                        <LogOut className="w-4 h-4 mr-1.5" />
-                        Mark Out
-                      </Button>
-                    )}
-
-                    {student.isCheckedIn && (
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          setModalState({
-                            isOpen: true,
-                            type: "clear",
-                            student,
-                            isSubmitting: false,
-                          })
-                        }
-                        className="min-h-[44px] px-3.5 text-xs font-semibold rounded-full border-red-200 text-red-600 hover:bg-red-50"
-                        title="Clear record"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </Card>
 
-      {/* 5. CONFIRMATION DIALOG MODAL */}
+      {/* Confirmation Dialog Modal */}
       {modalState.isOpen && modalState.student && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4 animate-in zoom-in-95 duration-150">
-            {/* Modal Icon & Header */}
+          <div className="bg-white rounded-xl max-w-sm w-full p-6 border border-border shadow-xl space-y-4 animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
             <div className="flex items-start gap-3">
               {modalState.type === "clear" ? (
                 <div className="w-10 h-10 rounded-full bg-red-50 text-[#EF4444] border border-red-200 flex items-center justify-center shrink-0">
                   <ShieldAlert className="w-5 h-5" />
                 </div>
               ) : (
-                <div className="w-10 h-10 rounded-full bg-[#F1F4FB] text-[#0B1B3F] border border-[#DDE3EE] flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5 text-[#00E6FF]" />
+                <div className="w-10 h-10 rounded-full bg-soft text-primary border border-border flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5" />
                 </div>
               )}
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">
+                <h3 className="text-base font-semibold text-primary">
                   {modalState.type === "clear"
                     ? "Clear Attendance Record"
                     : modalState.type === "check_in"
                     ? "Mark Student Check-In"
                     : "Mark Student Check-Out"}
                 </h3>
-                <p className="text-xs text-[#5E6C87] leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   {modalState.type === "clear" ? (
                     <>
                       Are you sure you want to permanently delete the attendance record for{" "}
-                      <strong className="text-[#0B1B3F]">{modalState.student.name}</strong> on{" "}
+                      <strong className="text-primary">{modalState.student.name}</strong> on{" "}
                       <strong>{selectedDate}</strong>? This action cannot be undone.
                     </>
                   ) : (
                     <>
                       Record {modalState.type === "check_in" ? "check-in" : "check-out"} for{" "}
-                      <strong className="text-[#0B1B3F]">{modalState.student.name}</strong> on{" "}
+                      <strong className="text-primary">{modalState.student.name}</strong> on{" "}
                       <strong>{selectedDate}</strong>?
                     </>
                   )}
@@ -787,33 +886,32 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
               </div>
             </div>
 
-            {/* Optional Custom Time Input for Check-in / Check-out */}
+            {/* Optional Custom Time Input */}
             {modalState.type !== "clear" && (
               <div className="space-y-1.5 pt-1">
-                <label className="text-[11px] font-semibold text-[#5E6C87]">
+                <label className="text-[13px] text-muted block">
                   Time in Africa/Lagos (Optional, 24h format HH:mm)
                 </label>
                 <input
                   type="time"
-                  placeholder="Leave empty for current time"
                   value={modalState.timeInput || ""}
                   onChange={(e) =>
                     setModalState((prev) => ({ ...prev, timeInput: e.target.value }))
                   }
-                  className="w-full px-3 py-2 text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
+                  className="w-full px-3 py-2 text-xs border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             )}
 
-            {/* Actions Buttons (min 44px tap targets) */}
+            {/* Actions Buttons */}
             <div className="flex items-center gap-2 pt-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() =>
                   setModalState({ isOpen: false, type: "check_in", student: null, isSubmitting: false })
                 }
                 disabled={modalState.isSubmitting}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -822,7 +920,7 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
                 variant={modalState.type === "clear" ? "danger" : "primary"}
                 onClick={handleConfirmAction}
                 isLoading={modalState.isSubmitting}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 {modalState.type === "clear"
                   ? "Yes, Clear"
@@ -838,46 +936,34 @@ export function AdminAttendanceConsole({ initialData }: AdminAttendanceConsolePr
   );
 }
 
-/**
- * Helper to render clean status badges matching Bitnox theme tokens
- */
-function renderStatusBadge(status: AdminStudentStatus) {
-  switch (status) {
-    case "Present":
-      return (
-        <Badge variant="present" withDot>
-          Present
-        </Badge>
-      );
-    case "Late":
-      return (
-        <Badge variant="late" withDot>
-          Late
-        </Badge>
-      );
-    case "Checked out":
-      return (
-        <Badge variant="primary" withDot>
-          Checked out
-        </Badge>
-      );
-    case "Absent":
-      return (
-        <Badge variant="absent" withDot>
-          Absent
-        </Badge>
-      );
-    case "Not yet in":
-      return (
-        <Badge variant="neutral">
-          Not yet in
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="neutral">
-          -
-        </Badge>
-      );
+function renderStatusBadge(student: AttendanceConsoleStudent) {
+  if (student.isCurrentlyIn) {
+    return (
+      <Badge variant="present" withDot>
+        In
+      </Badge>
+    );
   }
+  if (student.isCheckedOut) {
+    return (
+      <Badge variant="primary" withDot>
+        Out
+      </Badge>
+    );
+  }
+  if (student.isNotYetIn) {
+    return (
+      <Badge variant="neutral" withDot>
+        Not yet in
+      </Badge>
+    );
+  }
+  if (student.status === "Absent") {
+    return (
+      <Badge variant="absent" withDot>
+        Absent
+      </Badge>
+    );
+  }
+  return <Badge variant="neutral">-</Badge>;
 }

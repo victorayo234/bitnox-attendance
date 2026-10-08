@@ -42,9 +42,9 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm mx-auto space-y-6">
-      {/* Brand Header */}
+      {/* Brand Header without underline */}
       <div className="text-center flex flex-col items-center">
-        <Link href="/" className="inline-block transition-opacity hover:opacity-85">
+        <Link href="/" className="inline-block transition-opacity hover:opacity-85" aria-label="Bitnox Attendance Home">
           <Image
             src="/images/bitnox-logo.png"
             alt="Bitnox Attendance"
@@ -54,21 +54,20 @@ export function LoginForm() {
             className="h-9 w-auto object-contain mx-auto"
           />
         </Link>
-        <div className="w-10 h-1 bg-accent rounded-full mt-2 shadow-xs" />
       </div>
 
       {/* Login Card */}
-      <Card className="bg-white shadow-xs">
+      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-soft text-primary">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-soft text-primary">
             {isStudent ? (
-              <GraduationCap className="h-6 w-6" />
+              <GraduationCap className="h-5 w-5" />
             ) : (
-              <ShieldCheck className="h-6 w-6" />
+              <ShieldCheck className="h-5 w-5" />
             )}
           </div>
-          <CardTitle className="text-xl font-bold text-primary">{heading}</CardTitle>
-          <CardDescription className="text-xs">
+          <CardTitle className="text-xl font-semibold text-primary">{heading}</CardTitle>
+          <CardDescription className="text-xs text-muted">
             {isStudent
               ? "Enter your student credentials to log attendance"
               : "Enter your administrator credentials to access the console"}
@@ -79,7 +78,7 @@ export function LoginForm() {
           {/* Success Banner */}
           {successMessage && !errorMessage && (
             <div
-              className="mb-4 flex items-start gap-2.5 rounded-xl border border-present/30 bg-present/10 p-3 text-xs text-present animate-in fade-in-50"
+              className="mb-4 flex items-start gap-2.5 rounded-lg border border-present/30 bg-present/10 p-3 text-xs text-present animate-in fade-in-50"
               role="status"
             >
               <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-present" />
@@ -90,7 +89,7 @@ export function LoginForm() {
           {/* Error Banner */}
           {errorMessage && (
             <div
-              className="mb-4 flex items-start gap-2.5 rounded-xl border border-absent/30 bg-absent/10 p-3 text-xs text-absent animate-in fade-in-50"
+              className="mb-4 flex items-start gap-2.5 rounded-lg border border-absent/30 bg-absent/10 p-3 text-xs text-absent animate-in fade-in-50"
               role="alert"
             >
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -106,9 +105,9 @@ export function LoginForm() {
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="block text-xs font-semibold text-primary"
+                className="block text-[13px] font-medium text-primary"
               >
-                Email Address
+                Email address
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
@@ -120,8 +119,8 @@ export function LoginForm() {
                   type="email"
                   autoComplete="email"
                   required
-                  placeholder={isStudent ? "student@bitnox.qc" : "admin@bitnox.qc"}
-                  className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-4 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="you@example.com"
+                  className="w-full h-11 rounded-lg border border-border bg-white pl-10 pr-4 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
                 />
               </div>
             </div>
@@ -130,7 +129,7 @@ export function LoginForm() {
             <div className="space-y-1.5">
               <label
                 htmlFor="password"
-                className="block text-xs font-semibold text-primary"
+                className="block text-[13px] font-medium text-primary"
               >
                 Password
               </label>
@@ -145,12 +144,12 @@ export function LoginForm() {
                   autoComplete="current-password"
                   required
                   placeholder="••••••••"
-                  className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-11 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full h-11 rounded-lg border border-border bg-white pl-10 pr-11 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-muted hover:text-primary focus:outline-none"
+                  className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-muted hover:text-primary focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
@@ -177,12 +176,12 @@ export function LoginForm() {
               <Button
                 type="submit"
                 variant="primary"
-                size="lg"
+                size="md"
                 fullWidth
                 isLoading={isPending}
-                className="py-3 text-sm shadow-sm"
+                className="h-11 text-sm shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
               >
-                {isPending ? "Signing in..." : "Sign In"}
+                {isPending ? "Signing in..." : "Sign in"}
               </Button>
             </div>
           </form>
@@ -194,7 +193,7 @@ export function LoginForm() {
                 Don&apos;t have an account?{" "}
                 <Link
                   href="/signup"
-                  className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                  className="font-medium text-primary hover:underline inline-flex items-center gap-1"
                 >
                   <UserPlus className="h-3 w-3" />
                   Sign up

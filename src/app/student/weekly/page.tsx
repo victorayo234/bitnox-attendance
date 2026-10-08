@@ -120,7 +120,7 @@ export default async function WeeklyAttendancePage({
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0B1B3F]">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0B1B3F]">
             Weekly Attendance
           </h1>
           <p className="text-xs text-[#5E6C87] mt-0.5">
@@ -129,22 +129,22 @@ export default async function WeeklyAttendancePage({
         </div>
         <Link
           href="/student"
-          className="text-xs font-semibold text-[#5E6C87] hover:text-[#0B1B3F] inline-flex items-center min-h-[44px] py-2 px-3 rounded-full hover:bg-white transition-colors"
+          className="text-xs font-medium text-[#5E6C87] hover:text-[#0B1B3F] inline-flex items-center min-h-[44px] py-2 px-3 rounded-lg hover:bg-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
           Dashboard
         </Link>
       </div>
 
-      {/* Week Navigator (Previous / Next with Large Tap Targets) */}
-      <Card className="bg-white border border-[#DDE3EE] p-3 shadow-xs">
+      {/* Week Navigator */}
+      <div className="bg-white border border-[#DDE3EE] p-3 rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
         <div className="flex items-center justify-between">
           {/* Previous Week Button (min 44px tap target) */}
           <Button
             asChild
-            variant="outline"
+            variant="secondary"
             size="sm"
-            className="min-h-[44px] px-3.5 rounded-full text-xs font-semibold text-[#0B1B3F] border-[#DDE3EE] hover:bg-[#F1F4FB]"
+            className="min-h-[44px] sm:min-h-0 sm:h-9 px-3 rounded-lg text-xs font-medium"
           >
             <Link href={`/student/weekly?week=${prevWeekMonday}`}>
               <ChevronLeft className="w-4 h-4 mr-1 text-[#0B1B3F]" />
@@ -154,11 +154,11 @@ export default async function WeeklyAttendancePage({
 
           {/* Current Viewed Week Label */}
           <div className="text-center px-2">
-            <span className="text-xs font-bold text-[#0B1B3F] block">
+            <span className="text-xs font-semibold text-[#0B1B3F] block">
               {weekHeaderFormatted}
             </span>
             {isCurrentWeek ? (
-              <span className="text-[10px] font-semibold text-[#16A34A] uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-[#16A34A] uppercase tracking-wider">
                 Current Week
               </span>
             ) : (
@@ -172,9 +172,9 @@ export default async function WeeklyAttendancePage({
           {canGoNext ? (
             <Button
               asChild
-              variant="outline"
+              variant="secondary"
               size="sm"
-              className="min-h-[44px] px-3.5 rounded-full text-xs font-semibold text-[#0B1B3F] border-[#DDE3EE] hover:bg-[#F1F4FB]"
+              className="min-h-[44px] sm:min-h-0 sm:h-9 px-3 rounded-lg text-xs font-medium"
             >
               <Link href={`/student/weekly?week=${nextWeekMonday}`}>
                 Next Week
@@ -184,7 +184,7 @@ export default async function WeeklyAttendancePage({
           ) : (
             <button
               disabled
-              className="min-h-[44px] px-3.5 rounded-full text-xs font-medium text-gray-300 border border-gray-200 cursor-not-allowed flex items-center"
+              className="min-h-[44px] sm:min-h-0 sm:h-9 px-3 rounded-lg text-xs font-medium text-gray-300 border border-[#DDE3EE] cursor-not-allowed flex items-center"
               title="Cannot navigate beyond the current week"
             >
               Next Week
@@ -192,34 +192,34 @@ export default async function WeeklyAttendancePage({
             </button>
           )}
         </div>
-      </Card>
+      </div>
 
-      {/* Summary KPI Cards (Days Present, Days Late, Days Absent) */}
+      {/* Summary KPI Cards (Neutral numbers, 3px colored accent bar) */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="p-3.5 text-center bg-green-50/50 border-green-200 shadow-xs">
-          <p className="text-2xl font-bold text-[#16A34A]">{daysPresent}</p>
-          <p className="text-xs font-semibold text-[#0B1B3F] mt-0.5">Present</p>
-        </Card>
-        <Card className="p-3.5 text-center bg-amber-50/50 border-amber-200 shadow-xs">
-          <p className="text-2xl font-bold text-[#F59E0B]">{daysLate}</p>
-          <p className="text-xs font-semibold text-[#0B1B3F] mt-0.5">Late</p>
-        </Card>
-        <Card className="p-3.5 text-center bg-red-50/50 border-red-200 shadow-xs">
-          <p className="text-2xl font-bold text-[#EF4444]">{daysAbsent}</p>
-          <p className="text-xs font-semibold text-[#0B1B3F] mt-0.5">Absent</p>
-        </Card>
+        <div className="p-3.5 text-center bg-white border border-[#DDE3EE] border-l-[3px] border-l-[#16A34A] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <p className="text-2xl font-semibold text-[#0B1B3F]">{daysPresent}</p>
+          <p className="text-xs font-medium text-[#5E6C87] mt-0.5">Present</p>
+        </div>
+        <div className="p-3.5 text-center bg-white border border-[#DDE3EE] border-l-[3px] border-l-[#F59E0B] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <p className="text-2xl font-semibold text-[#0B1B3F]">{daysLate}</p>
+          <p className="text-xs font-medium text-[#5E6C87] mt-0.5">Late</p>
+        </div>
+        <div className="p-3.5 text-center bg-white border border-[#DDE3EE] border-l-[3px] border-l-[#EF4444] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <p className="text-2xl font-semibold text-[#0B1B3F]">{daysAbsent}</p>
+          <p className="text-xs font-medium text-[#5E6C87] mt-0.5">Absent</p>
+        </div>
       </div>
 
       {/* Daily Schedule Card List */}
-      <Card className="bg-white border border-[#DDE3EE] shadow-sm overflow-hidden">
-        <CardHeader className="py-3.5 px-4 sm:px-5 border-b border-[#DDE3EE]/60 bg-[#FAFCFF]">
-          <CardTitle className="text-sm font-bold text-[#0B1B3F] flex items-center gap-2">
+      <div className="bg-white border border-[#DDE3EE] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden">
+        <div className="py-3.5 px-4 sm:px-5 border-b border-[#DDE3EE] bg-[#F1F4FB]/50">
+          <h2 className="text-sm font-semibold text-[#0B1B3F] flex items-center gap-2">
             <CalendarCheck className="w-4 h-4 text-[#0B1B3F]" />
             Monday – Friday Schedule
-          </CardTitle>
-        </CardHeader>
+          </h2>
+        </div>
 
-        <CardContent className="p-0 divide-y divide-[#DDE3EE]/60">
+        <div className="p-0 divide-y divide-[#DDE3EE]/60">
           {viewedWeek.workdays.map((dayStr) => {
             const rec = recordsMap.get(dayStr);
             const dateObj = parseISO(dayStr);
@@ -238,7 +238,6 @@ export default async function WeeklyAttendancePage({
               badgeVariant = "neutral";
               label = "Today";
             } else if (!isFuture) {
-              // Past workday with no record is Absent
               badgeVariant = "absent";
               label = "Absent";
             } else {
@@ -257,20 +256,20 @@ export default async function WeeklyAttendancePage({
               <div
                 key={dayStr}
                 className={`p-4 sm:px-5 flex items-center justify-between transition-colors ${
-                  isToday ? "bg-[#F1F4FB]/70 font-medium" : "hover:bg-[#F9FBFE]"
+                  isToday ? "bg-[#F1F4FB]/50 font-medium" : "hover:bg-[#F1F4FB]/20"
                 }`}
               >
                 {/* Day Name and Date */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-[#0B1B3F]">
+                    <span className="font-semibold text-sm text-[#0B1B3F]">
                       {dayName}
                     </span>
                     <span className="text-xs text-[#5E6C87]">
                       {formattedDate}
                     </span>
                     {isToday && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0B1B3F] text-white px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-semibold bg-[#0B1B3F] text-white px-2 py-0.5 rounded-full">
                         Today
                       </span>
                     )}
@@ -299,25 +298,18 @@ export default async function WeeklyAttendancePage({
               </div>
             );
           })}
-        </CardContent>
+        </div>
 
-        {/* Empty State Banner (if no attendance has been recorded for the entire week) */}
+        {/* Empty State Banner */}
         {totalRecordedDays === 0 && (
-          <div className="p-6 text-center bg-[#F9FBFE] border-t border-[#DDE3EE]/60 space-y-2">
-            <div className="w-10 h-10 rounded-full bg-white text-[#5E6C87] flex items-center justify-center mx-auto border border-[#DDE3EE] shadow-xs">
-              <Inbox className="w-5 h-5" />
-            </div>
-            <p className="text-xs font-semibold text-[#0B1B3F]">
-              {isCurrentWeek ? "No attendance recorded yet this week" : "No records found for this week"}
-            </p>
-            <p className="text-[11px] text-[#5E6C87] max-w-xs mx-auto">
-              {isCurrentWeek
-                ? "Your check-in and check-out logs will automatically appear here as you scan."
-                : "No check-in or check-out records exist in the system for this week."}
+          <div className="p-6 text-center border-t border-[#DDE3EE] flex flex-col items-center justify-center space-y-1">
+            <Inbox className="w-5 h-5 text-[#5E6C87]" />
+            <p className="text-sm text-[#5E6C87]">
+              {isCurrentWeek ? "No attendance recorded yet this week." : "No records found for this week."}
             </p>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

@@ -55,7 +55,7 @@ export default async function ScanPage({
     return (
       <div className="min-h-screen bg-[#F5F8FE] flex flex-col justify-between p-4 sm:p-6">
         <header className="max-w-md mx-auto w-full py-4 flex items-center justify-between">
-          <div className="flex flex-col">
+          <Link href="/" className="inline-block transition-opacity hover:opacity-85">
             <Image
               src="/images/bitnox-logo.png"
               alt="Bitnox Attendance"
@@ -64,33 +64,32 @@ export default async function ScanPage({
               priority
               className="h-7 w-auto object-contain"
             />
-            <div className="h-0.5 w-8 bg-[#00E6FF] rounded-full mt-1" />
-          </div>
-          <LogoutButton />
+          </Link>
+          <LogoutButton variant="ghost" />
         </header>
 
         <main className="max-w-md mx-auto w-full my-auto py-6">
-          <Card className="bg-white border border-[#DDE3EE] p-6 text-center space-y-4 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+          <div className="rounded-[12px] bg-white border border-[#DDE3EE] p-6 text-center space-y-4 shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+            <div className="w-12 h-12 rounded-[10px] bg-[#F59E0B]/10 text-[#F59E0B] flex items-center justify-center mx-auto">
               <ShieldAlert className="w-6 h-6" />
             </div>
 
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-[#0B1B3F]">Administrator Account</h2>
+              <h2 className="text-lg font-semibold text-[#0B1B3F]">Administrator Account</h2>
               <p className="text-xs text-[#5E6C87] leading-relaxed">
                 Use a student account to scan.
               </p>
             </div>
 
             <div className="pt-2">
-              <Button asChild className="w-full rounded-full bg-[#0B1B3F] text-white py-3 text-xs font-medium">
+              <Button asChild variant="primary" size="md" fullWidth className="h-10 text-sm font-medium">
                 <Link href="/admin">
                   Go to Admin Dashboard
                   <ArrowRight className="w-4 h-4 ml-1.5" />
                 </Link>
               </Button>
             </div>
-          </Card>
+          </div>
         </main>
 
         <footer className="max-w-md mx-auto w-full py-4 text-center text-xs text-[#5E6C87]">

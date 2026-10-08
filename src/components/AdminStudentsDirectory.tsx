@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
@@ -15,18 +15,14 @@ import {
   X,
   Copy,
   Check,
-  ChevronRight,
   ShieldAlert,
-  ShieldCheck,
   ShieldX,
   Shield,
-  MoreVertical,
   ChevronDown,
   ChevronUp,
   Activity,
   Info,
 } from "lucide-react";
-import { format } from "date-fns";
 
 export interface AdminStudentItem {
   id: string;
@@ -57,6 +53,22 @@ interface AdminStudentsDirectoryProps {
 }
 
 type FilterChip = "all" | "students" | "admins" | "deactivated";
+
+function getInitials(name: string): string {
+  if (!name) return "S";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function formatJoinedDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return `Joined ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+  } catch {
+    return "";
+  }
+}
 
 export function AdminStudentsDirectory({
   initialStudents,
@@ -102,9 +114,6 @@ export function AdminStudentsDirectory({
   const [resetNewPass, setResetNewPass] = useState("");
   const [isSubmittingReset, setIsSubmittingReset] = useState(false);
 
-  // Mobile Action Menu State
-  const [mobileMenuStudent, setMobileMenuStudent] = useState<AdminStudentItem | null>(null);
-
   // Close modals on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -119,7 +128,6 @@ export function AdminStudentsDirectory({
           setShowPasswordModal(false);
           setResetStudent(null);
           setShowAddModal(false);
-          setMobileMenuStudent(null);
         }
       }
     };
@@ -140,7 +148,6 @@ export function AdminStudentsDirectory({
   const filteredStudents = useMemo(() => {
     let result = students;
 
-    // Apply Filter Chips
     if (activeChip === "students") {
       result = result.filter((s) => s.role === "student");
     } else if (activeChip === "admins") {
@@ -149,7 +156,6 @@ export function AdminStudentsDirectory({
       result = result.filter((s) => !s.isActive);
     }
 
-    // Apply Search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -161,7 +167,6 @@ export function AdminStudentsDirectory({
     return result;
   }, [students, searchQuery, activeChip]);
 
-  // Count metrics for display
   const totalAccounts = filteredStudents.length;
   const adminCount = filteredStudents.filter((s) => s.role === "admin").length;
 
@@ -184,13 +189,11 @@ export function AdminStudentsDirectory({
         throw new Error(data.error || "Failed to update role");
       }
 
-      // Update state without full page reload
       const updatedList = students.map((s) =>
         s.id === roleModalTarget.id ? { ...s, role: targetRoleAction } : s
       );
       setStudents(sortAccounts(updatedList));
 
-      // Close dialog & show green toast
       const targetName = roleModalTarget.name;
       const targetRole = targetRoleAction;
       setRoleModalTarget(null);
@@ -204,9 +207,9 @@ export function AdminStudentsDirectory({
             ? `${targetName} is now an admin.`
             : `${targetName} is now a student.`,
       });
-    } catch (err: any) {
-      // Keep dialog open and show server's message in a red inline alert
-      setRoleModalError(err.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setRoleModalError(errorMsg);
     } finally {
       setIsSubmittingRole(false);
     }
@@ -240,7 +243,6 @@ export function AdminStudentsDirectory({
         throw new Error(data.error || "Failed to create student");
       }
 
-      // Add to local state and re-sort
       const created: AdminStudentItem = {
         id: data.student.id,
         name: data.student.full_name,
@@ -261,7 +263,6 @@ export function AdminStudentsDirectory({
         tempPass: newPassword,
       });
 
-      // Clear input fields
       setNewName("");
       setNewEmail("");
       setNewPassword("Bitnox2026!");
@@ -269,8 +270,9 @@ export function AdminStudentsDirectory({
         type: "success",
         message: "Student account created and approved successfully!",
       });
-    } catch (err: any) {
-      setToast({ type: "error", message: err.message || "Failed to create student" });
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to create student";
+      setToast({ type: "error", message: errorMsg });
     } finally {
       setIsSubmittingAdd(false);
     }
@@ -306,11 +308,12 @@ export function AdminStudentsDirectory({
           ? `${student.name} has been reactivated.`
           : `${student.name} has been deactivated.`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Action failed";
       if (showDeactivateModal) {
-        setDeactivateError(err.message || "Action failed");
+        setDeactivateError(errorMsg);
       } else {
-        setToast({ type: "error", message: err.message || "Action failed" });
+        setToast({ type: "error", message: errorMsg });
       }
     } finally {
       setIsSubmittingToggle(false);
@@ -337,7 +340,7 @@ export function AdminStudentsDirectory({
       });
 
       const data = await res.json();
-      if (!res.ok || !data.ok) {
+      if (!resetStudent || !data.ok) {
         throw new Error(data.error || "Failed to reset password");
       }
 
@@ -348,8 +351,9 @@ export function AdminStudentsDirectory({
       });
       setResetNewPass("");
       setResetStudent(null);
-    } catch (err: any) {
-      setToast({ type: "error", message: err.message || "Failed to reset password" });
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to reset password";
+      setToast({ type: "error", message: errorMsg });
     } finally {
       setIsSubmittingReset(false);
     }
@@ -386,386 +390,489 @@ export function AdminStudentsDirectory({
         </div>
       )}
 
-      {/* Page Header */}
+      {/* Page Header: Title and Add Student Primary Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0B1B3F]">
-            Students Directory
+          <h1 className="text-2xl font-semibold text-primary leading-8">
+            Students
           </h1>
-          <p className="text-xs sm:text-sm text-[#5E6C87]">
-            Manage approved accounts, administrative privileges, and attendance status
+          <p className="text-sm text-muted mt-0.5 leading-5">
+            Manage approved student accounts, administrative privileges, and attendance status
           </p>
         </div>
 
-        {/* Add Student Button (min 44px tap target) */}
         <Button
           variant="primary"
           onClick={() => {
             setCreatedCredentials(null);
             setShowAddModal(true);
           }}
-          className="min-h-[44px] px-4 rounded-full text-xs font-semibold self-start sm:self-auto shadow-sm"
+          leftIcon={<UserPlus className="w-4 h-4" />}
+          className="self-start sm:self-auto"
         >
-          <UserPlus className="w-4 h-4 mr-2" />
-          Add Student
+          Add student
         </Button>
       </div>
 
-      {/* Filter Chips & Search Bar */}
-      <div className="space-y-3">
-        {/* Filter Chips */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setActiveChip("all")}
-            className={`min-h-[38px] px-4 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-              activeChip === "all"
-                ? "bg-[#0B1B3F] text-white shadow-xs"
-                : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F8FAFD]"
-            }`}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveChip("students")}
-            className={`min-h-[38px] px-4 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-              activeChip === "students"
-                ? "bg-[#0B1B3F] text-white shadow-xs"
-                : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F8FAFD]"
-            }`}
-          >
-            Students
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveChip("admins")}
-            className={`min-h-[38px] px-4 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-              activeChip === "admins"
-                ? "bg-[#0B1B3F] text-white shadow-xs"
-                : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F8FAFD]"
-            }`}
-          >
-            Admins
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveChip("deactivated")}
-            className={`min-h-[38px] px-4 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-              activeChip === "deactivated"
-                ? "bg-[#0B1B3F] text-white shadow-xs"
-                : "bg-white text-[#5E6C87] border border-[#DDE3EE] hover:bg-[#F8FAFD]"
-            }`}
-          >
-            Deactivated
-          </button>
+      {/* Filter Segmented Control & Search Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left: Segmented Filter with Muted Count */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="bg-soft p-1 rounded-lg border border-border inline-flex items-center text-xs">
+            <button
+              type="button"
+              onClick={() => setActiveChip("all")}
+              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
+                activeChip === "all"
+                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                  : "text-muted hover:text-primary font-medium"
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveChip("students")}
+              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
+                activeChip === "students"
+                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                  : "text-muted hover:text-primary font-medium"
+              }`}
+            >
+              Students
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveChip("admins")}
+              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
+                activeChip === "admins"
+                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                  : "text-muted hover:text-primary font-medium"
+              }`}
+            >
+              Admins
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveChip("deactivated")}
+              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
+                activeChip === "deactivated"
+                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                  : "text-muted hover:text-primary font-medium"
+              }`}
+            >
+              Deactivated
+            </button>
+          </div>
+
+          <span className="text-xs text-muted">
+            {totalAccounts} accounts · {adminCount} {adminCount === 1 ? "admin" : "admins"}
+          </span>
         </div>
 
-        {/* Search Bar & Total Counter */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5E6C87]" />
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              aria-label="Search by name or email"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 min-h-[44px] bg-white border border-[#DDE3EE] rounded-full text-xs font-medium text-[#0B1B3F] placeholder-[#5E6C87] focus:outline-none focus:border-[#0B1B3F] transition-all shadow-2xs"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5E6C87] hover:text-[#0B1B3F]"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          <div className="text-xs text-[#5E6C87] font-medium">
-            Total: <strong>{totalAccounts}</strong> accounts, <strong>{adminCount}</strong> {adminCount === 1 ? "admin" : "admins"}
-          </div>
+        {/* Right: Search Box */}
+        <div className="relative flex-1 max-w-xs">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            aria-label="Search by name or email"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-10 pl-9 pr-8 bg-white border border-border rounded-lg text-sm text-primary placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-primary p-0.5"
+              aria-label="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* STUDENTS LIST (DESKTOP TABLE) */}
-      <Card className="bg-white border border-[#DDE3EE] rounded-2xl shadow-sm overflow-hidden hidden md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFD] text-[#5E6C87] border-b border-[#DDE3EE] uppercase tracking-wider text-[11px] font-semibold">
+      {/* Desktop Table: 1024px and above (NO horizontal scrollbar) */}
+      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden hidden lg:block">
+        <table className="w-full table-fixed text-left text-sm border-collapse">
+          <colgroup>
+            <col className="w-[31%]" />
+            <col className="w-[12%]" />
+            <col className="w-[12%]" />
+            <col className="w-[16%]" />
+            <col className="w-[29%]" />
+          </colgroup>
+          <thead className="bg-[#FAFCFF] border-b border-border text-xs uppercase tracking-wider text-muted font-semibold sticky top-0 z-10">
+            <tr>
+              <th className="py-3.5 px-5">Account</th>
+              <th className="py-3.5 px-4">Role</th>
+              <th className="py-3.5 px-4">Status</th>
+              <th className="py-3.5 px-4">Today</th>
+              <th className="py-3.5 px-5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {filteredStudents.length === 0 ? (
               <tr>
-                <th className="py-3.5 px-5">Account</th>
-                <th className="py-3.5 px-4">Role</th>
-                <th className="py-3.5 px-4">Account Status</th>
-                <th className="py-3.5 px-4">Today&apos;s Status</th>
-                <th className="py-3.5 px-4">Enrolled</th>
-                <th className="py-3.5 px-5 text-right">Actions</th>
+                <td colSpan={5} className="py-12 text-center text-sm text-muted">
+                  No accounts matching current filter or search.
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[#DDE3EE]/60">
-              {filteredStudents.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#5E6C87]">
-                    No accounts matching current filter or search.
-                  </td>
-                </tr>
-              ) : (
-                filteredStudents.map((account) => {
-                  const isCurrentAdmin = account.id === currentAdminId;
-                  const canMakeAdmin = account.role === "student" && account.status === "approved" && account.isActive;
-                  const canRemoveAdmin = account.role === "admin" && !isCurrentAdmin;
-                  const cannotPromoteReason = !account.isActive || account.status !== "approved";
+            ) : (
+              filteredStudents.map((account) => {
+                const isCurrentAdmin = account.id === currentAdminId;
+                const canMakeAdmin = account.role === "student" && account.status === "approved" && account.isActive;
+                const canRemoveAdmin = account.role === "admin" && !isCurrentAdmin;
+                const cannotPromoteReason = !account.isActive || account.status !== "approved";
+                const initials = getInitials(account.name);
+                const joinedText = formatJoinedDate(account.createdAt);
 
-                  return (
-                    <tr
-                      key={account.id}
-                      className={`hover:bg-[#F9FBFE] transition-colors ${
-                        account.role === "admin" ? "bg-slate-50/40" : ""
-                      }`}
-                    >
-                      {/* Name and Email */}
-                      <td className="py-3.5 px-5">
-                        <Link
-                          href={`/admin/students/${account.id}`}
-                          className="group inline-flex flex-col hover:opacity-85"
-                        >
-                          <span className="font-bold text-sm text-[#0B1B3F] group-hover:text-blue-600 inline-flex items-center gap-1.5 transition-colors">
-                            {account.name}
+                return (
+                  <tr
+                    key={account.id}
+                    className="hover:bg-[#F9FBFE] transition-colors"
+                  >
+                    {/* Account Column: 32px circle, name, You tag, email, joined date */}
+                    <td className="py-3.5 px-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0 select-none">
+                          {initials}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <Link
+                              href={`/admin/students/${account.id}`}
+                              className="font-medium text-sm text-primary hover:underline truncate"
+                              title={account.name}
+                            >
+                              {account.name}
+                            </Link>
                             {isCurrentAdmin && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#00E6FF]/20 text-[#0B1B3F] border border-[#00E6FF]/30">
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-soft text-muted border border-border shrink-0">
                                 You
                               </span>
                             )}
-                            <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-blue-600 transition-opacity" />
-                          </span>
-                          <span className="text-[11px] text-[#5E6C87]">{account.email}</span>
-                        </Link>
-                      </td>
-
-                      {/* Role Badge: Navy Admin pill vs Muted Student pill */}
-                      <td className="py-3.5 px-4">
-                        {account.role === "admin" ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#0B1B3F] text-white shadow-2xs">
-                            <Shield className="w-3 h-3 mr-1 text-[#00E6FF]" />
-                            Admin
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                            Student
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Active Status Badge */}
-                      <td className="py-3.5 px-4">
-                        {account.isActive ? (
-                          <Badge variant="present" withDot>
-                            Active
-                          </Badge>
-                        ) : (
-                          <Badge variant="absent" withDot>
-                            Deactivated
-                          </Badge>
-                        )}
-                      </td>
-
-                      {/* Today's Status Badge */}
-                      <td className="py-3.5 px-4">
-                        {renderTodayBadge(account.todayStatus, account.todayCheckIn)}
-                      </td>
-
-                      {/* Enrolled Date */}
-                      <td className="py-3.5 px-4 text-[#5E6C87]">
-                        {format(new Date(account.createdAt), "MMM d, yyyy")}
-                      </td>
-
-                      {/* Actions: History, Make admin / Remove admin, Password, Deactivate / Reactivate */}
-                      <td className="py-3.5 px-5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* 1. History */}
-                          <Button
-                            asChild
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2.5 rounded-full text-xs text-[#5E6C87] hover:text-[#0B1B3F]"
-                            title="View Attendance History"
-                          >
-                            <Link href={`/admin/students/${account.id}`}>
-                              <History className="w-3.5 h-3.5 mr-1" />
-                              History
-                            </Link>
-                          </Button>
-
-                          {/* 2. Make admin / Remove admin */}
-                          {canMakeAdmin && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setRoleModalTarget(account);
-                                setTargetRoleAction("admin");
-                                setRoleModalError(null);
-                              }}
-                              className="h-8 px-2.5 rounded-full text-[11px] border-[#0B1B3F]/30 text-[#0B1B3F] hover:bg-[#0B1B3F] hover:text-white transition-colors"
-                              title="Promote to Administrator"
-                            >
-                              <ShieldCheck className="w-3.5 h-3.5 mr-1 text-blue-600" />
-                              Make admin
-                            </Button>
-                          )}
-
-                          {canRemoveAdmin && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setRoleModalTarget(account);
-                                setTargetRoleAction("student");
-                                setRoleModalError(null);
-                              }}
-                              className="h-8 px-2.5 rounded-full text-[11px] border-red-200 text-red-600 hover:bg-red-50"
-                              title="Remove Administrator Access"
-                            >
-                              <ShieldX className="w-3.5 h-3.5 mr-1" />
-                              Remove admin
-                            </Button>
-                          )}
-
-                          {!isCurrentAdmin && cannotPromoteReason && account.role === "student" && (
-                            <span
-                              className="inline-flex items-center text-[11px] text-gray-400 cursor-not-allowed px-1.5 py-0.5 rounded"
-                              title="Only approved, active students can be promoted."
-                            >
-                              <Info className="w-3 h-3 mr-1 text-gray-400" />
-                              <span className="hidden xl:inline">Only approved, active students can be promoted.</span>
-                            </span>
-                          )}
-
-                          {/* 3. Password */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setResetStudent(account);
-                              setResetNewPass("");
-                              setShowPasswordModal(true);
-                            }}
-                            className="h-8 px-2.5 rounded-full text-[11px] border-[#DDE3EE] hover:bg-[#F1F4FB]"
-                            title="Reset Password"
-                          >
-                            <KeyRound className="w-3.5 h-3.5 mr-1 text-[#0B1B3F]" />
-                            Password
-                          </Button>
-
-                          {/* 4. Deactivate / Reactivate (hidden on logged-in admin's own row) */}
-                          {!isCurrentAdmin && (
-                            account.isActive ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setTargetStudent(account);
-                                  setDeactivateError(null);
-                                  setShowDeactivateModal(true);
-                                }}
-                                className="h-8 px-2.5 rounded-full text-[11px] border-red-200 text-red-600 hover:bg-red-50"
-                              >
-                                Deactivate
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleToggleActive(account)}
-                                className="h-8 px-2.5 rounded-full text-[11px] border-green-200 text-[#16A34A] hover:bg-green-50"
-                              >
-                                Reactivate
-                              </Button>
-                            )
+                          </div>
+                          <div className="text-xs text-muted truncate leading-tight">
+                            {account.email}
+                          </div>
+                          {joinedText && (
+                            <div className="text-[11px] text-muted/70 leading-tight hidden xl:block mt-0.5">
+                              {joinedText}
+                            </div>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                      </div>
+                    </td>
+
+                    {/* Role Column */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {account.role === "admin" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
+                          <Shield className="w-3 h-3" />
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-soft text-muted border border-border">
+                          Student
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Status Column: dot + text */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {account.isActive ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
+                          Active
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                          Deactivated
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Today Column: small badge with dot + Late tag */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {renderTodayBadge(account.todayStatus)}
+                    </td>
+
+                    {/* Actions Column: compact buttons visible in single row */}
+                    <td className="py-3.5 px-5 text-right whitespace-nowrap">
+                      <div className="inline-flex items-center justify-end gap-1 flex-nowrap">
+                        {/* 1. History */}
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2.5 text-[13px]"
+                          title="View Attendance History"
+                        >
+                          <Link href={`/admin/students/${account.id}`}>
+                            <History className="w-3.5 h-3.5 mr-1" />
+                            History
+                          </Link>
+                        </Button>
+
+                        {/* 2. Make admin / Remove admin */}
+                        {canMakeAdmin && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setRoleModalTarget(account);
+                              setTargetRoleAction("admin");
+                              setRoleModalError(null);
+                            }}
+                            className="h-8 px-2.5 text-[13px]"
+                            title="Promote to Administrator"
+                          >
+                            <Shield className="w-3.5 h-3.5 mr-1 text-primary" />
+                            Make admin
+                          </Button>
+                        )}
+
+                        {canRemoveAdmin && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setRoleModalTarget(account);
+                              setTargetRoleAction("student");
+                              setRoleModalError(null);
+                            }}
+                            className="h-8 px-2.5 text-[13px] border-red-200 text-red-600 hover:bg-red-50"
+                            title="Remove Administrator Access"
+                          >
+                            <ShieldX className="w-3.5 h-3.5 mr-1 text-red-600" />
+                            Remove admin
+                          </Button>
+                        )}
+
+                        {!isCurrentAdmin && cannotPromoteReason && account.role === "student" && (
+                          <span
+                            className="inline-flex items-center text-xs text-muted/60 px-1"
+                            title="Only approved, active students can be promoted."
+                          >
+                            <Info className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+
+                        {/* 3. Password */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setResetStudent(account);
+                            setResetNewPass("");
+                            setShowPasswordModal(true);
+                          }}
+                          className="h-8 px-2.5 text-[13px]"
+                          title="Reset Password"
+                        >
+                          <KeyRound className="w-3.5 h-3.5 mr-1" />
+                          Password
+                        </Button>
+
+                        {/* 4. Deactivate / Reactivate */}
+                        {!isCurrentAdmin && (
+                          account.isActive ? (
+                            <Button
+                              variant="danger-ghost"
+                              size="sm"
+                              onClick={() => {
+                                setTargetStudent(account);
+                                setDeactivateError(null);
+                                setShowDeactivateModal(true);
+                              }}
+                              className="h-8 px-2.5 text-[13px]"
+                            >
+                              Deactivate
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleToggleActive(account)}
+                              className="h-8 px-2.5 text-[13px] text-[#16A34A] border-emerald-200 hover:bg-emerald-50"
+                            >
+                              Reactivate
+                            </Button>
+                          )
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </Card>
 
-      {/* MOBILE STACKED CARDS VIEW (md:hidden) with "..." Menu & >=44px tap targets */}
-      <div className="block md:hidden space-y-3">
+      {/* Stacked Cards View: Below 1024px (NO actions menu, all 4 buttons visible) */}
+      <div className="lg:hidden space-y-3">
         {filteredStudents.length === 0 ? (
-          <Card className="p-6 text-center text-xs text-[#5E6C87] bg-white border border-[#DDE3EE]">
+          <Card className="bg-white border border-border p-8 text-center text-sm text-muted">
             No accounts matching current filter or search.
           </Card>
         ) : (
           filteredStudents.map((account) => {
             const isCurrentAdmin = account.id === currentAdminId;
-            const isAdmin = account.role === "admin";
+            const canMakeAdmin = account.role === "student" && account.status === "approved" && account.isActive;
+            const canRemoveAdmin = account.role === "admin" && !isCurrentAdmin;
+            const initials = getInitials(account.name);
 
             return (
               <Card
                 key={account.id}
-                className={`bg-white border border-[#DDE3EE] p-4 rounded-2xl shadow-xs space-y-3 ${
-                  isAdmin ? "border-l-4 border-l-[#0B1B3F] bg-slate-50/30" : ""
-                }`}
+                className="bg-white border border-border p-4 rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] space-y-3"
               >
-                {/* Header: Name, Email & Role / You */}
-                <div className="flex items-start justify-between gap-2">
-                  <Link href={`/admin/students/${account.id}`} className="flex-1">
-                    <h4 className="font-bold text-sm text-[#0B1B3F] inline-flex items-center gap-1.5 flex-wrap">
-                      {account.name}
-                      {isCurrentAdmin && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#00E6FF]/20 text-[#0B1B3F] border border-[#00E6FF]/30">
-                          You
-                        </span>
-                      )}
-                      <ChevronRight className="w-3.5 h-3.5 text-[#5E6C87]" />
-                    </h4>
-                    <p className="text-[11px] text-[#5E6C87]">{account.email}</p>
-                  </Link>
+                {/* Header: Avatar, Name, Email, Role and Status badges */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0">
+                      {initials}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Link
+                          href={`/admin/students/${account.id}`}
+                          className="font-medium text-sm text-primary hover:underline truncate"
+                        >
+                          {account.name}
+                        </Link>
+                        {isCurrentAdmin && (
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-soft text-muted border border-border">
+                            You
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted truncate">
+                        {account.email}
+                      </div>
+                    </div>
+                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Role Pill */}
-                    {isAdmin ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0B1B3F] text-white">
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {account.role === "admin" ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+                        <Shield className="w-3 h-3" />
                         Admin
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-soft text-muted border border-border">
                         Student
                       </span>
                     )}
 
-                    {/* Mobile "..." action button (min 44px tap target) */}
-                    <button
-                      type="button"
-                      aria-label="Open actions menu"
-                      onClick={() => setMobileMenuStudent(account)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-gray-50 border border-[#DDE3EE] text-[#0B1B3F] hover:bg-gray-100 transition-colors"
-                    >
-                      <MoreVertical className="w-5 h-5 text-[#0B1B3F]" />
-                    </button>
+                    {account.isActive ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                        Deactivated
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Account and Today Status Row */}
-                <div className="grid grid-cols-2 gap-2 text-xs bg-[#F8FAFD] p-2.5 rounded-xl border border-[#DDE3EE]/60">
-                  <div className="flex items-center justify-between pr-2 border-r border-[#DDE3EE]">
-                    <span className="text-[#5E6C87] text-[11px]">Account:</span>
-                    {account.isActive ? (
-                      <Badge variant="present" withDot>Active</Badge>
+                {/* Today status row */}
+                <div className="flex items-center justify-between text-xs py-2 px-3 bg-soft rounded-lg">
+                  <span className="text-muted">Today:</span>
+                  <div>{renderTodayBadge(account.todayStatus)}</div>
+                </div>
+
+                {/* Action Buttons: 2x2 grid on phones, each at least 44px tall */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {/* Button 1: History */}
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="min-h-[44px] justify-center text-xs font-medium border border-border bg-white"
+                  >
+                    <Link href={`/admin/students/${account.id}`}>
+                      <History className="w-4 h-4 mr-1.5 text-muted" />
+                      History
+                    </Link>
+                  </Button>
+
+                  {/* Button 2: Password */}
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setResetStudent(account);
+                      setResetNewPass("");
+                      setShowPasswordModal(true);
+                    }}
+                    className="min-h-[44px] justify-center text-xs font-medium border border-border bg-white"
+                  >
+                    <KeyRound className="w-4 h-4 mr-1.5 text-muted" />
+                    Password
+                  </Button>
+
+                  {/* Button 3: Make admin / Remove admin */}
+                  {canMakeAdmin && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setRoleModalTarget(account);
+                        setTargetRoleAction("admin");
+                        setRoleModalError(null);
+                      }}
+                      className="min-h-[44px] justify-center text-xs font-medium"
+                    >
+                      <Shield className="w-4 h-4 mr-1.5 text-primary" />
+                      Make admin
+                    </Button>
+                  )}
+
+                  {canRemoveAdmin && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setRoleModalTarget(account);
+                        setTargetRoleAction("student");
+                        setRoleModalError(null);
+                      }}
+                      className="min-h-[44px] justify-center text-xs font-medium border-red-200 text-red-600"
+                    >
+                      <ShieldX className="w-4 h-4 mr-1.5" />
+                      Remove admin
+                    </Button>
+                  )}
+
+                  {/* Button 4: Deactivate / Reactivate */}
+                  {!isCurrentAdmin && (
+                    account.isActive ? (
+                      <Button
+                        variant="danger-ghost"
+                        onClick={() => {
+                          setTargetStudent(account);
+                          setDeactivateError(null);
+                          setShowDeactivateModal(true);
+                        }}
+                        className="min-h-[44px] justify-center text-xs font-medium border border-red-200/60"
+                      >
+                        Deactivate
+                      </Button>
                     ) : (
-                      <Badge variant="absent" withDot>Deactivated</Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between pl-2">
-                    <span className="text-[#5E6C87] text-[11px]">Today:</span>
-                    <div>{renderTodayBadge(account.todayStatus, account.todayCheckIn)}</div>
-                  </div>
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleToggleActive(account)}
+                        className="min-h-[44px] justify-center text-xs font-medium text-[#16A34A] border-emerald-200"
+                      >
+                        Reactivate
+                      </Button>
+                    )
+                  )}
                 </div>
               </Card>
             );
@@ -773,194 +880,53 @@ export function AdminStudentsDirectory({
         )}
       </div>
 
-      {/* MOBILE ACTION MENU SHEET (min 44px tap targets) */}
-      {mobileMenuStudent && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-xs"
-          onClick={() => setMobileMenuStudent(null)}
-        >
-          <div
-            className="bg-white rounded-t-3xl sm:rounded-2xl max-w-sm w-full p-5 border border-[#DDE3EE] shadow-2xl space-y-4 animate-in slide-in-from-bottom"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between pb-2 border-b border-[#DDE3EE]">
-              <div>
-                <h3 className="text-base font-bold text-[#0B1B3F]">
-                  {mobileMenuStudent.name}
-                </h3>
-                <p className="text-xs text-[#5E6C87]">{mobileMenuStudent.email}</p>
-              </div>
-              <button
-                onClick={() => setMobileMenuStudent(null)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-[#5E6C87] hover:text-[#0B1B3F]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {/* 1. History */}
-              <Button
-                asChild
-                variant="outline"
-                className="w-full min-h-[44px] justify-start text-xs font-semibold rounded-xl border-[#DDE3EE]"
-              >
-                <Link
-                  href={`/admin/students/${mobileMenuStudent.id}`}
-                  onClick={() => setMobileMenuStudent(null)}
-                >
-                  <History className="w-4 h-4 mr-2.5 text-[#5E6C87]" />
-                  View Attendance History
-                </Link>
-              </Button>
-
-              {/* 2. Make admin / Remove admin */}
-              {mobileMenuStudent.role === "student" &&
-                mobileMenuStudent.status === "approved" &&
-                mobileMenuStudent.isActive && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setRoleModalTarget(mobileMenuStudent);
-                      setTargetRoleAction("admin");
-                      setRoleModalError(null);
-                      setMobileMenuStudent(null);
-                    }}
-                    className="w-full min-h-[44px] justify-start text-xs font-semibold rounded-xl border-[#0B1B3F]/30 text-[#0B1B3F] hover:bg-[#0B1B3F] hover:text-white"
-                  >
-                    <ShieldCheck className="w-4 h-4 mr-2.5 text-blue-600" />
-                    Make admin
-                  </Button>
-                )}
-
-              {mobileMenuStudent.role === "admin" &&
-                mobileMenuStudent.id !== currentAdminId && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setRoleModalTarget(mobileMenuStudent);
-                      setTargetRoleAction("student");
-                      setRoleModalError(null);
-                      setMobileMenuStudent(null);
-                    }}
-                    className="w-full min-h-[44px] justify-start text-xs font-semibold rounded-xl border-red-200 text-red-600 hover:bg-red-50"
-                  >
-                    <ShieldX className="w-4 h-4 mr-2.5" />
-                    Remove admin
-                  </Button>
-                )}
-
-              {mobileMenuStudent.id !== currentAdminId &&
-                (!mobileMenuStudent.isActive || mobileMenuStudent.status !== "approved") &&
-                mobileMenuStudent.role === "student" && (
-                  <div className="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[11px] text-gray-500">
-                    Only approved, active students can be promoted.
-                  </div>
-                )}
-
-              {/* 3. Password */}
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setResetStudent(mobileMenuStudent);
-                  setResetNewPass("");
-                  setShowPasswordModal(true);
-                  setMobileMenuStudent(null);
-                }}
-                className="w-full min-h-[44px] justify-start text-xs font-semibold rounded-xl border-[#DDE3EE]"
-              >
-                <KeyRound className="w-4 h-4 mr-2.5 text-[#0B1B3F]" />
-                Reset Password
-              </Button>
-
-              {/* 4. Deactivate / Reactivate */}
-              {mobileMenuStudent.id !== currentAdminId && (
-                mobileMenuStudent.isActive ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setTargetStudent(mobileMenuStudent);
-                      setDeactivateError(null);
-                      setShowDeactivateModal(true);
-                      setMobileMenuStudent(null);
-                    }}
-                    className="w-full min-h-[44px] justify-start text-xs font-semibold rounded-xl border-red-200 text-red-600 hover:bg-red-50"
-                  >
-                    <ShieldAlert className="w-4 h-4 mr-2.5" />
-                    Deactivate Account
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      handleToggleActive(mobileMenuStudent);
-                      setMobileMenuStudent(null);
-                    }}
-                    className="w-full min-h-[44px] justify-start text-xs font-semibold rounded-xl border-green-200 text-[#16A34A] hover:bg-green-50"
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-2.5" />
-                    Reactivate Account
-                  </Button>
-                )
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SECTION E: ADMIN ACTIVITY AUDIT SECTION (COLLAPSED BY DEFAULT) */}
-      <Card className="bg-white border border-[#DDE3EE] rounded-2xl shadow-xs overflow-hidden">
+      {/* Admin activity audit section: Collapsed card with chevron */}
+      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden">
         <button
           type="button"
           onClick={() => setShowActivity(!showActivity)}
-          className="w-full min-h-[48px] p-4 flex items-center justify-between text-left hover:bg-[#F9FBFE] transition-colors cursor-pointer"
+          className="w-full min-h-[48px] px-5 py-3.5 flex items-center justify-between text-left hover:bg-soft transition-colors cursor-pointer"
         >
           <div className="flex items-center gap-2.5">
-            <Activity className="w-4 h-4 text-[#0B1B3F]" />
-            <h3 className="text-sm font-bold text-[#0B1B3F]">Admin activity</h3>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold border border-slate-200">
-              {roleActivity.length} recent {roleActivity.length === 1 ? "entry" : "entries"}
+            <Activity className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-primary">Admin activity</span>
+            <span className="text-xs text-muted">
+              {roleActivity.length} {roleActivity.length === 1 ? "entry" : "entries"}
             </span>
           </div>
           {showActivity ? (
-            <ChevronUp className="w-4 h-4 text-[#5E6C87]" />
+            <ChevronUp className="w-4 h-4 text-muted" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-[#5E6C87]" />
+            <ChevronDown className="w-4 h-4 text-muted" />
           )}
         </button>
 
         {showActivity && (
-          <CardContent className="p-0 border-t border-[#DDE3EE]">
+          <CardContent className="p-0 border-t border-border">
             {roleActivity.length === 0 ? (
-              <div className="p-6 text-center text-xs text-[#5E6C87]">
+              <div className="p-6 text-center text-xs text-muted">
                 No role changes recorded yet.
               </div>
             ) : (
-              <div className="divide-y divide-[#DDE3EE]/60 max-h-96 overflow-y-auto">
+              <div className="divide-y divide-border/60 max-h-96 overflow-y-auto">
                 {roleActivity.map((act) => (
                   <div
                     key={act.id}
-                    className="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs hover:bg-[#F8FAFD]"
+                    className="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs hover:bg-[#FAFCFF]"
                   >
                     <div className="space-y-0.5">
-                      <div className="font-semibold text-[#0B1B3F] flex items-center gap-1.5 flex-wrap">
+                      <div className="font-medium text-primary flex items-center gap-1.5 flex-wrap">
                         <span>{act.actorName}</span>
-                        <span className="text-[#5E6C87] font-normal">changed</span>
-                        <strong>{act.targetName}</strong>
-                      </div>
-                      <div className="text-[11px] text-[#5E6C87]">
-                        {act.newRole === "admin" ? (
-                          <span className="text-blue-700 font-medium">
-                            Promoted from student to admin
-                          </span>
-                        ) : (
-                          <span className="text-red-700 font-medium">
-                            Removed as admin (demoted to student)
-                          </span>
-                        )}
+                        <span className="text-muted font-normal">
+                          {act.newRole === "admin" ? "made" : "removed"}
+                        </span>
+                        <span className="font-semibold">{act.targetName}</span>
+                        <span className="text-muted font-normal">
+                          {act.newRole === "admin" ? "an admin" : "as admin"}
+                        </span>
                       </div>
                     </div>
-                    <span className="text-[11px] text-[#5E6C87] shrink-0">
+                    <span className="text-xs text-muted shrink-0">
                       {act.createdAt}
                     </span>
                   </div>
@@ -971,7 +937,7 @@ export function AdminStudentsDirectory({
         )}
       </Card>
 
-      {/* SECTION C: MAKE ADMIN CONFIRMATION DIALOG (ITEM 7) */}
+      {/* MAKE ADMIN CONFIRMATION DIALOG */}
       {roleModalTarget && targetRoleAction === "admin" && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
@@ -984,26 +950,25 @@ export function AdminStudentsDirectory({
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#DDE3EE] shadow-2xl space-y-4"
+            className="bg-white rounded-xl max-w-md w-full p-6 border border-border shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-[#0B1B3F] border border-blue-200 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-full bg-soft text-primary border border-border flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 text-primary" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">
+                <h3 className="text-base font-semibold text-primary">
                   Give {roleModalTarget.name} admin access?
                 </h3>
-                <p className="text-xs text-[#5E6C87] leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   They will see every student&apos;s attendance, manage accounts, and can promote or remove other admins. Only do this for people you fully trust.
                 </p>
               </div>
             </div>
 
-            {/* Red inline alert on server failure (Item 9) */}
             {roleModalError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium flex items-start gap-2">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                 <span className="flex-1">{roleModalError}</span>
               </div>
@@ -1012,14 +977,14 @@ export function AdminStudentsDirectory({
             <div className="flex items-center gap-2 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 disabled={isSubmittingRole}
                 onClick={() => {
                   setRoleModalTarget(null);
                   setTargetRoleAction(null);
                   setRoleModalError(null);
                 }}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -1029,7 +994,7 @@ export function AdminStudentsDirectory({
                 isLoading={isSubmittingRole}
                 disabled={isSubmittingRole}
                 onClick={handleRoleChangeSubmit}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white"
+                className="flex-1"
               >
                 Make admin
               </Button>
@@ -1038,7 +1003,7 @@ export function AdminStudentsDirectory({
         </div>
       )}
 
-      {/* SECTION C: REMOVE ADMIN CONFIRMATION DIALOG (ITEM 8) */}
+      {/* REMOVE ADMIN CONFIRMATION DIALOG */}
       {roleModalTarget && targetRoleAction === "student" && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
@@ -1051,7 +1016,7 @@ export function AdminStudentsDirectory({
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#DDE3EE] shadow-2xl space-y-4"
+            className="bg-white rounded-xl max-w-md w-full p-6 border border-border shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
@@ -1059,18 +1024,17 @@ export function AdminStudentsDirectory({
                 <ShieldX className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">
+                <h3 className="text-base font-semibold text-primary">
                   Remove admin access from {roleModalTarget.name}?
                 </h3>
-                <p className="text-xs text-[#5E6C87] leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   They will become a regular student and lose access to all admin pages immediately.
                 </p>
               </div>
             </div>
 
-            {/* Red inline alert on server failure (Item 9) */}
             {roleModalError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium flex items-start gap-2">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                 <span className="flex-1">{roleModalError}</span>
               </div>
@@ -1079,14 +1043,14 @@ export function AdminStudentsDirectory({
             <div className="flex items-center gap-2 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 disabled={isSubmittingRole}
                 onClick={() => {
                   setRoleModalTarget(null);
                   setTargetRoleAction(null);
                   setRoleModalError(null);
                 }}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -1096,7 +1060,7 @@ export function AdminStudentsDirectory({
                 isLoading={isSubmittingRole}
                 disabled={isSubmittingRole}
                 onClick={handleRoleChangeSubmit}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold bg-red-600 hover:bg-red-700 text-white"
+                className="flex-1"
               >
                 Remove admin
               </Button>
@@ -1105,7 +1069,7 @@ export function AdminStudentsDirectory({
         </div>
       )}
 
-      {/* ADD STUDENT MODAL FORM */}
+      {/* ADD STUDENT MODAL */}
       {showAddModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
@@ -1116,24 +1080,24 @@ export function AdminStudentsDirectory({
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
+            className="bg-white rounded-xl max-w-md w-full p-6 border border-border shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             {!createdCredentials ? (
               <form onSubmit={handleAddStudent} className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-0.5">
-                    <h3 className="text-base font-bold text-[#0B1B3F]">
+                    <h3 className="text-base font-semibold text-primary">
                       Add New Student
                     </h3>
-                    <p className="text-xs text-[#5E6C87]">
+                    <p className="text-xs text-muted">
                       Create a pre-approved student account with instant access
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center text-[#5E6C87] hover:text-[#0B1B3F]"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-primary hover:bg-soft"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1141,35 +1105,35 @@ export function AdminStudentsDirectory({
 
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-[#0B1B3F]">
+                    <label className="text-[13px] font-medium text-primary block">
                       Full Name *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Victor Ayomide"
+                      placeholder="e.g. Samuel Adeleke"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
-                      className="w-full px-3 py-2 min-h-[44px] text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
+                      className="w-full h-11 px-3 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-[#0B1B3F]">
+                    <label className="text-[13px] font-medium text-primary block">
                       Email Address *
                     </label>
                     <input
                       type="email"
                       required
-                      placeholder="e.g. victor@student.bitnox.qc"
+                      placeholder="you@example.com"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
-                      className="w-full px-3 py-2 min-h-[44px] text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
+                      className="w-full h-11 px-3 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-[#0B1B3F]">
+                    <label className="text-[13px] font-medium text-primary block">
                       Temporary Password * (min 8 chars)
                     </label>
                     <input
@@ -1178,7 +1142,7 @@ export function AdminStudentsDirectory({
                       minLength={8}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-3 py-2 min-h-[44px] text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
+                      className="w-full h-11 px-3 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-xs"
                     />
                   </div>
                 </div>
@@ -1186,10 +1150,10 @@ export function AdminStudentsDirectory({
                 <div className="flex items-center gap-2 pt-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     onClick={() => setShowAddModal(false)}
                     disabled={isSubmittingAdd}
-                    className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                    className="flex-1"
                   >
                     Cancel
                   </Button>
@@ -1197,46 +1161,45 @@ export function AdminStudentsDirectory({
                     type="submit"
                     variant="primary"
                     isLoading={isSubmittingAdd}
-                    className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                    className="flex-1"
                   >
                     Create Student
                   </Button>
                 </div>
               </form>
             ) : (
-              /* Success Card with Credentials */
               <div className="space-y-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-green-50 text-[#16A34A] border border-green-200 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 text-[#16A34A] border border-emerald-200 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
 
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-[#0B1B3F]">
+                  <h3 className="text-base font-semibold text-primary">
                     Student Created Successfully!
                   </h3>
-                  <p className="text-xs text-[#5E6C87]">
+                  <p className="text-xs text-muted">
                     The student can log in immediately with these details:
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#F8FAFD] border border-[#DDE3EE] text-left text-xs space-y-2">
+                <div className="p-4 rounded-lg bg-soft border border-border text-left text-xs space-y-2">
                   <div>
-                    <span className="text-[#5E6C87] block text-[10px] uppercase font-semibold">
+                    <span className="text-muted block text-[11px] font-medium">
                       Student Name
                     </span>
-                    <strong className="text-[#0B1B3F]">{createdCredentials.name}</strong>
+                    <strong className="text-primary font-semibold">{createdCredentials.name}</strong>
                   </div>
                   <div>
-                    <span className="text-[#5E6C87] block text-[10px] uppercase font-semibold">
+                    <span className="text-muted block text-[11px] font-medium">
                       Email Address
                     </span>
-                    <strong className="text-[#0B1B3F]">{createdCredentials.email}</strong>
+                    <strong className="text-primary font-semibold">{createdCredentials.email}</strong>
                   </div>
                   <div>
-                    <span className="text-[#5E6C87] block text-[10px] uppercase font-semibold">
+                    <span className="text-muted block text-[11px] font-medium">
                       Temporary Password
                     </span>
-                    <strong className="font-mono text-xs text-[#0B1B3F]">
+                    <strong className="font-mono text-xs text-primary">
                       {createdCredentials.tempPass}
                     </strong>
                   </div>
@@ -1244,9 +1207,9 @@ export function AdminStudentsDirectory({
 
                 <div className="flex items-center gap-2 pt-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     onClick={copyCredentials}
-                    className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                    className="flex-1"
                   >
                     {copied ? (
                       <>
@@ -1267,7 +1230,7 @@ export function AdminStudentsDirectory({
                       setShowAddModal(false);
                       setCreatedCredentials(null);
                     }}
-                    className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                    className="flex-1"
                   >
                     Done
                   </Button>
@@ -1291,7 +1254,7 @@ export function AdminStudentsDirectory({
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
+            className="bg-white rounded-xl max-w-sm w-full p-6 border border-border shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
@@ -1299,33 +1262,33 @@ export function AdminStudentsDirectory({
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">
+                <h3 className="text-base font-semibold text-primary">
                   Deactivate {targetStudent.role === "admin" ? "Administrator" : "Student"}
                 </h3>
-                <p className="text-xs text-[#5E6C87] leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   Are you sure you want to deactivate{" "}
-                  <strong className="text-[#0B1B3F]">{targetStudent.name}</strong>? They will be
+                  <strong className="text-primary">{targetStudent.name}</strong>? They will be
                   blocked from signing in and scanning attendance.
                 </p>
               </div>
             </div>
 
             {deactivateError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
                 {deactivateError}
               </div>
             )}
 
             <div className="flex items-center gap-2 pt-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => {
                   setShowDeactivateModal(false);
                   setTargetStudent(null);
                   setDeactivateError(null);
                 }}
                 disabled={isSubmittingToggle}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -1333,7 +1296,7 @@ export function AdminStudentsDirectory({
                 variant="danger"
                 onClick={() => handleToggleActive(targetStudent)}
                 isLoading={isSubmittingToggle}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 Yes, Deactivate
               </Button>
@@ -1356,24 +1319,24 @@ export function AdminStudentsDirectory({
         >
           <form
             onSubmit={handleResetPassword}
-            className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#DDE3EE] shadow-xl space-y-4"
+            className="bg-white rounded-xl max-w-sm w-full p-6 border border-border shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#F1F4FB] text-[#0B1B3F] border border-[#DDE3EE] flex items-center justify-center shrink-0">
-                <KeyRound className="w-5 h-5 text-[#00E6FF]" />
+              <div className="w-10 h-10 rounded-full bg-soft text-primary border border-border flex items-center justify-center shrink-0">
+                <KeyRound className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#0B1B3F]">Reset Password</h3>
-                <p className="text-xs text-[#5E6C87] leading-relaxed">
+                <h3 className="text-base font-semibold text-primary">Reset Password</h3>
+                <p className="text-xs text-muted leading-relaxed">
                   Type a new temporary password for{" "}
-                  <strong className="text-[#0B1B3F]">{resetStudent.name}</strong>.
+                  <strong className="text-primary">{resetStudent.name}</strong>.
                 </p>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-[#5E6C87]">
+              <label className="text-[13px] text-muted block">
                 New Temporary Password (min 8 characters)
               </label>
               <input
@@ -1383,21 +1346,21 @@ export function AdminStudentsDirectory({
                 value={resetNewPass}
                 onChange={(e) => setResetNewPass(e.target.value)}
                 placeholder="Enter temporary password"
-                className="w-full px-3 py-2 min-h-[44px] text-xs border border-[#DDE3EE] rounded-xl focus:outline-none focus:border-[#0B1B3F]"
+                className="w-full h-11 px-3 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-xs"
               />
             </div>
 
             <div className="flex items-center gap-2 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 onClick={() => {
                   setShowPasswordModal(false);
                   setResetStudent(null);
                   setResetNewPass("");
                 }}
                 disabled={isSubmittingReset}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -1405,7 +1368,7 @@ export function AdminStudentsDirectory({
                 type="submit"
                 variant="primary"
                 isLoading={isSubmittingReset}
-                className="flex-1 min-h-[44px] rounded-full text-xs font-semibold"
+                className="flex-1"
               >
                 Update Password
               </Button>
@@ -1417,19 +1380,24 @@ export function AdminStudentsDirectory({
   );
 }
 
-function renderTodayBadge(status: string, time?: string | null) {
+function renderTodayBadge(status: string) {
   switch (status) {
     case "Present":
       return (
         <Badge variant="present" withDot>
-          Present {time ? `(${time})` : ""}
+          Present
         </Badge>
       );
     case "Late":
       return (
-        <Badge variant="late" withDot>
-          Late {time ? `(${time})` : ""}
-        </Badge>
+        <span className="inline-flex items-center gap-1.5">
+          <Badge variant="late" withDot>
+            Present
+          </Badge>
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-late border border-amber-200">
+            Late
+          </span>
+        </span>
       );
     case "Checked out":
       return (
@@ -1446,7 +1414,7 @@ function renderTodayBadge(status: string, time?: string | null) {
     case "Not yet in":
     default:
       return (
-        <Badge variant="neutral">
+        <Badge variant="neutral" withDot>
           Not yet in
         </Badge>
       );

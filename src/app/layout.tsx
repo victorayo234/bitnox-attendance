@@ -49,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full bg-white text-primary font-sans antialiased selection:bg-[#00E6FF]/20 selection:text-primary">
+      <body className="min-h-full bg-[#F5F8FE] text-[#0B1B3F] font-sans antialiased selection:bg-[#00E6FF]/20 selection:text-[#0B1B3F]">
         {children}
       </body>
     </html>

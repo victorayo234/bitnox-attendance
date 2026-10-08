@@ -24,7 +24,10 @@ const config: Config = {
         inter: ["var(--font-inter)", "sans-serif"],
       },
       borderRadius: {
-        card: "16px",
+        card: "12px",
+      },
+      boxShadow: {
+        card: "0 1px 2px rgba(11, 27, 63, 0.04)",
       },
     },
   },

@@ -4,8 +4,30 @@ import { useTransition } from "react";
 import { logoutAction } from "@/lib/actions/auth";
 import { LogOut } from "lucide-react";
 
-export function LogoutButton() {
+export interface LogoutButtonProps {
+  variant?: "ghost" | "secondary";
+  showText?: boolean;
+  fullWidth?: boolean;
+  className?: string;
+}
+
+export function LogoutButton({
+  variant = "ghost",
+  showText = false,
+  fullWidth = false,
+  className = "",
+}: LogoutButtonProps) {
   const [isPending, startTransition] = useTransition();
+
+  const baseClasses =
+    "inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 select-none cursor-pointer rounded-lg";
+
+  const variantClass =
+    variant === "secondary"
+      ? "bg-white border border-border text-primary hover:bg-soft h-10 px-4 text-sm font-medium shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+      : showText
+      ? "bg-transparent text-muted hover:text-primary hover:bg-soft h-10 px-4 text-sm font-medium"
+      : "h-8 w-8 text-muted hover:text-primary hover:bg-soft";
 
   return (
     <button
@@ -15,12 +37,12 @@ export function LogoutButton() {
         });
       }}
       disabled={isPending}
-      className="inline-flex items-center justify-center gap-1.5 px-4 min-h-[44px] rounded-full text-xs font-medium text-muted hover:text-absent hover:bg-absent/10 border border-border hover:border-absent/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
-      title="Sign out of your account"
-      aria-label="Sign out of your account"
+      className={`${baseClasses} ${variantClass} ${fullWidth ? "w-full" : ""} ${className}`.trim()}
+      title="Log out"
+      aria-label="Log out"
     >
-      <LogOut className="h-3.5 w-3.5" />
-      <span>{isPending ? "Exiting..." : "Log out"}</span>
+      <LogOut className="h-4 w-4 shrink-0" />
+      {showText && <span>{isPending ? "Signing out..." : "Log out"}</span>}
     </button>
   );
 }

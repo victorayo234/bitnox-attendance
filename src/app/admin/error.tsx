@@ -19,13 +19,13 @@ export default function AdminError({
 
   return (
     <div className="py-8 space-y-4 max-w-md mx-auto">
-      <Card className="bg-white border border-red-200 p-6 sm:p-8 text-center space-y-5 rounded-2xl shadow-sm">
-        <div className="w-14 h-14 rounded-full bg-red-50 text-[#EF4444] border border-red-200 flex items-center justify-center mx-auto">
+      <div className="bg-white border border-[#EF4444]/30 p-6 sm:p-8 text-center space-y-5 rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+        <div className="w-14 h-14 rounded-[10px] bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 flex items-center justify-center mx-auto">
           <AlertTriangle className="w-7 h-7" />
         </div>
 
         <div className="space-y-1.5">
-          <h2 className="text-lg font-bold text-[#0B1B3F]">
+          <h2 className="text-lg font-semibold text-[#0B1B3F]">
             Admin Console Error
           </h2>
           <p className="text-xs text-[#5E6C87] leading-relaxed">
@@ -35,8 +35,11 @@ export default function AdminError({
 
         <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
           <Button
+            variant="primary"
+            size="md"
+            fullWidth
             onClick={() => reset()}
-            className="w-full min-h-[44px] rounded-full bg-[#0B1B3F] text-white text-xs font-semibold"
+            className="h-10 text-sm font-medium rounded-lg"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Retry
@@ -44,8 +47,10 @@ export default function AdminError({
 
           <Button
             asChild
-            variant="outline"
-            className="w-full min-h-[44px] rounded-full text-xs font-semibold border-[#DDE3EE]"
+            variant="secondary"
+            size="md"
+            fullWidth
+            className="h-10 text-sm font-medium rounded-lg"
           >
             <Link href="/admin">
               <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -53,7 +58,7 @@ export default function AdminError({
             </Link>
           </Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -51,61 +51,58 @@ export function ScanLinkProcessor({ code, studentName }: ScanLinkProcessorProps)
     <div className="min-h-screen bg-[#F5F8FE] flex flex-col justify-between p-4 sm:p-6">
       {/* Brand Header */}
       <header className="max-w-md mx-auto w-full py-4 flex items-center justify-center">
-        <div className="flex flex-col items-center">
-          <Image
-            src="/images/bitnox-logo.png"
-            alt="Bitnox Attendance"
-            width={130}
-            height={32}
-            priority
-            className="h-8 w-auto object-contain"
-          />
-          <div className="h-0.5 w-10 bg-[#00E6FF] rounded-full mt-1" />
-        </div>
+        <Image
+          src="/images/bitnox-logo.png"
+          alt="Bitnox Attendance"
+          width={130}
+          height={32}
+          priority
+          className="h-8 w-auto object-contain"
+        />
       </header>
 
       {/* Main Content Area */}
       <main className="max-w-md mx-auto w-full my-auto py-6">
         {/* Case 1: No code provided */}
         {!code && (
-          <Card className="bg-white border border-[#DDE3EE] p-6 text-center space-y-4 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+          <div className="rounded-[12px] bg-white border border-[#DDE3EE] p-6 text-center space-y-4 shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+            <div className="w-12 h-12 rounded-[10px] bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-[#0B1B3F]">Missing QR Code</h2>
+              <h2 className="text-lg font-semibold text-[#0B1B3F]">Missing QR Code</h2>
               <p className="text-xs text-[#5E6C87] leading-relaxed">
                 No code was detected in the scan link. Please use your phone camera or the in-app scanner to scan a valid Bitnox QR code.
               </p>
             </div>
-            <Button asChild className="w-full min-h-[44px] rounded-full bg-[#0B1B3F] text-white py-3">
+            <Button asChild variant="primary" size="md" fullWidth className="h-10 text-sm font-medium">
               <Link href="/student">
                 <Home className="w-4 h-4 mr-2" />
                 Go to Dashboard
               </Link>
             </Button>
-          </Card>
+          </div>
         )}
 
         {/* Case 2: Submitting / Loading */}
         {code && loading && (
-          <Card className="bg-white border border-[#DDE3EE] p-8 text-center space-y-4 shadow-sm">
-            <div className="w-14 h-14 rounded-full bg-[#F1F4FB] text-[#0B1B3F] flex items-center justify-center mx-auto">
-              <RefreshCw className="w-7 h-7 text-[#00E6FF] animate-spin" />
+          <div className="rounded-[12px] bg-white border border-[#DDE3EE] p-8 text-center space-y-4 shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+            <div className="w-14 h-14 rounded-[10px] bg-[#F1F4FB] text-[#0B1B3F] flex items-center justify-center mx-auto">
+              <RefreshCw className="w-7 h-7 text-[#0B1B3F] animate-spin motion-reduce:animate-none" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-[#0B1B3F]">Verifying Attendance</h2>
+              <h2 className="text-lg font-semibold text-[#0B1B3F]">Verifying Attendance</h2>
               <p className="text-xs text-[#5E6C87]">
                 Logging your attendance with the Bitnox server...
               </p>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* Case 3: Success */}
         {result && (
-          <Card className="bg-white border border-green-200 p-6 text-center space-y-5 shadow-md animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-14 h-14 rounded-full bg-green-50 text-[#16A34A] border border-green-200 flex items-center justify-center mx-auto shadow-xs">
+          <div className="rounded-[12px] bg-white border border-[#16A34A]/30 p-6 text-center space-y-5 shadow-[0_1px_2px_rgba(11,27,63,0.04)] animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-[10px] bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/20 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
@@ -116,24 +113,24 @@ export function ScanLinkProcessor({ code, studentName }: ScanLinkProcessorProps)
                 </Badge>
                 <span className="text-xs font-semibold text-[#5E6C87]">{result.time}</span>
               </div>
-              <h2 className="text-base font-bold text-[#0B1B3F] leading-snug">
+              <h2 className="text-base font-semibold text-[#0B1B3F] leading-snug">
                 {result.message}
               </h2>
             </div>
 
-            <Button asChild className="w-full min-h-[44px] rounded-full bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white py-3 text-sm font-medium">
+            <Button asChild variant="primary" size="md" fullWidth className="h-10 text-sm font-medium">
               <Link href="/student">
                 Go to Dashboard
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
-          </Card>
+          </div>
         )}
 
         {/* Case 4: Error */}
         {error && !loading && (
-          <Card className="bg-white border border-red-200 p-6 text-center space-y-5 shadow-sm animate-in fade-in duration-200">
-            <div className="w-14 h-14 rounded-full bg-red-50 text-[#EF4444] border border-red-200 flex items-center justify-center mx-auto shadow-xs">
+          <div className="rounded-[12px] bg-white border border-[#EF4444]/30 p-6 text-center space-y-5 shadow-[0_1px_2px_rgba(11,27,63,0.04)] animate-in fade-in duration-200">
+            <div className="w-14 h-14 rounded-[10px] bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 flex items-center justify-center mx-auto">
               {error.code === "OFFLINE" || error.code === "NETWORK_ERROR" ? (
                 <WifiOff className="w-7 h-7" />
               ) : (
@@ -145,7 +142,7 @@ export function ScanLinkProcessor({ code, studentName }: ScanLinkProcessorProps)
               <Badge variant="absent" className="mx-auto font-mono text-[11px]">
                 {error.code}
               </Badge>
-              <h2 className="text-base font-bold text-[#0B1B3F] leading-snug">
+              <h2 className="text-base font-semibold text-[#0B1B3F] leading-snug">
                 {error.message}
               </h2>
               <p className="text-xs text-[#5E6C87]">
@@ -157,16 +154,21 @@ export function ScanLinkProcessor({ code, studentName }: ScanLinkProcessorProps)
 
             <div className="space-y-2 pt-2">
               <Button
+                variant="primary"
+                size="md"
+                fullWidth
                 onClick={handleRetry}
-                className="w-full min-h-[44px] rounded-full bg-[#0B1B3F] hover:bg-[#0B1B3F]/90 text-white py-3 text-sm font-medium"
+                className="h-10 text-sm font-medium"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Retry Verification
               </Button>
               <Button
                 asChild
-                variant="outline"
-                className="w-full min-h-[44px] rounded-full border-[#DDE3EE] py-3 text-sm font-medium"
+                variant="secondary"
+                size="md"
+                fullWidth
+                className="h-10 text-sm font-medium"
               >
                 <Link href="/student">
                   <Home className="w-4 h-4 mr-2" />
@@ -174,7 +176,7 @@ export function ScanLinkProcessor({ code, studentName }: ScanLinkProcessorProps)
                 </Link>
               </Button>
             </div>
-          </Card>
+          </div>
         )}
       </main>
 

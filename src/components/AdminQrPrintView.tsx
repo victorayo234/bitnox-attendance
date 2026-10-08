@@ -21,7 +21,7 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
       {/* 1. SCREEN-ONLY TOP ACTION BAR */}
       <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0B1B3F]">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0B1B3F]">
             QR Code Posters
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6C87]">
@@ -31,8 +31,9 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
 
         <Button
           variant="primary"
+          size="md"
           onClick={handlePrint}
-          className="min-h-[44px] px-5 rounded-full text-xs font-semibold shadow-sm self-start sm:self-auto"
+          className="h-10 px-5 text-sm font-medium self-start sm:self-auto"
         >
           <Printer className="w-4 h-4 mr-2" />
           Print Posters (A4)
@@ -40,13 +41,13 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
       </div>
 
       {/* 2. SCREEN-ONLY "TEST SCAN" CALLOUT */}
-      <div className="no-print p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3 shadow-2xs">
-        <Smartphone className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+      <div className="no-print p-4 rounded-[12px] bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-start gap-3">
+        <Smartphone className="w-5 h-5 text-[#F59E0B] shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+          <h4 className="text-xs font-semibold text-[#0B1B3F] uppercase tracking-wider">
             Test scan note
           </h4>
-          <p className="text-xs text-amber-800 leading-relaxed font-medium">
+          <p className="text-xs text-[#5E6C87] leading-relaxed">
             Before pasting these up, scan each printed copy with the app to confirm it works.
           </p>
         </div>
@@ -55,9 +56,9 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
       {/* 3. POSTER CONTAINER (Screen: 2-column grid; Print: 2 full A4 pages with page break) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:block print:w-full">
         {/* POSTER 1: CHECK IN */}
-        <div className="print-poster-page poster-in bg-white border border-[#DDE3EE] rounded-3xl p-8 sm:p-10 shadow-sm flex flex-col items-center justify-between text-center min-h-[560px] print:border-none print:shadow-none print:p-0 print:m-0 print:min-h-screen">
+        <div className="print-poster-page poster-in bg-white border border-[#DDE3EE] rounded-[12px] p-8 sm:p-10 shadow-[0_1px_2px_rgba(11,27,63,0.04)] flex flex-col items-center justify-between text-center min-h-[560px] print:border-none print:shadow-none print:p-0 print:m-0 print:min-h-screen">
           {/* Top Brand Header */}
-          <div className="flex flex-col items-center space-y-2 pt-2">
+          <div className="flex flex-col items-center pt-2">
             <Image
               src="/images/bitnox-logo.png"
               alt="Bitnox Attendance"
@@ -66,22 +67,21 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
               priority
               className="h-10 sm:h-12 w-auto object-contain print:h-14"
             />
-            <div className="h-1 w-16 bg-[#00E6FF] rounded-full print:bg-black print:h-1" />
           </div>
 
           {/* Main Title & QR Code */}
           <div className="my-auto py-6 flex flex-col items-center space-y-6">
             <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#16A34A] print:text-black">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#16A34A] print:text-black">
                 ATTENDANCE
               </span>
-              <h2 className="text-4xl sm:text-5xl font-black text-[#0B1B3F] tracking-tight print:text-black">
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-[#0B1B3F] tracking-tight print:text-black">
                 CHECK IN
               </h2>
             </div>
 
             {/* QR Code Graphic (High-res 1024px black on white) */}
-            <div className="p-4 bg-white rounded-2xl border-2 border-[#0B1B3F] shadow-sm print:border-4 print:border-black print:p-4">
+            <div className="p-4 bg-white rounded-xl border-2 border-[#0B1B3F] shadow-sm print:border-4 print:border-black print:p-4">
               {inQrCode ? (
                 <img
                   src={inQrCode}
@@ -89,7 +89,7 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
                   className="w-56 h-56 sm:w-64 sm:h-64 object-contain print:w-80 print:h-80"
                 />
               ) : (
-                <div className="w-56 h-56 flex items-center justify-center text-xs text-red-500 font-semibold">
+                <div className="w-56 h-56 flex items-center justify-center text-xs text-[#EF4444] font-semibold">
                   QR_IN_SECRET not configured
                 </div>
               )}
@@ -97,7 +97,7 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
 
             {/* One-Line Instruction */}
             <div className="space-y-1 max-w-xs">
-              <p className="text-base sm:text-lg font-bold text-[#0B1B3F] print:text-black print:text-xl">
+              <p className="text-base sm:text-lg font-semibold text-[#0B1B3F] print:text-black print:text-xl">
                 Scan with the Bitnox Attendance app
               </p>
               <p className="text-xs text-[#5E6C87] print:text-black print:text-sm">
@@ -113,9 +113,9 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
         </div>
 
         {/* POSTER 2: CHECK OUT */}
-        <div className="print-poster-page poster-out bg-white border border-[#DDE3EE] rounded-3xl p-8 sm:p-10 shadow-sm flex flex-col items-center justify-between text-center min-h-[560px] print:border-none print:shadow-none print:p-0 print:m-0 print:min-h-screen">
+        <div className="print-poster-page poster-out bg-white border border-[#DDE3EE] rounded-[12px] p-8 sm:p-10 shadow-[0_1px_2px_rgba(11,27,63,0.04)] flex flex-col items-center justify-between text-center min-h-[560px] print:border-none print:shadow-none print:p-0 print:m-0 print:min-h-screen">
           {/* Top Brand Header */}
-          <div className="flex flex-col items-center space-y-2 pt-2">
+          <div className="flex flex-col items-center pt-2">
             <Image
               src="/images/bitnox-logo.png"
               alt="Bitnox Attendance"
@@ -124,22 +124,21 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
               priority
               className="h-10 sm:h-12 w-auto object-contain print:h-14"
             />
-            <div className="h-1 w-16 bg-[#00E6FF] rounded-full print:bg-black print:h-1" />
           </div>
 
           {/* Main Title & QR Code */}
           <div className="my-auto py-6 flex flex-col items-center space-y-6">
             <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#0B1B3F] print:text-black">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#0B1B3F] print:text-black">
                 ATTENDANCE
               </span>
-              <h2 className="text-4xl sm:text-5xl font-black text-[#0B1B3F] tracking-tight print:text-black">
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-[#0B1B3F] tracking-tight print:text-black">
                 CHECK OUT
               </h2>
             </div>
 
             {/* QR Code Graphic (High-res 1024px black on white) */}
-            <div className="p-4 bg-white rounded-2xl border-2 border-[#0B1B3F] shadow-sm print:border-4 print:border-black print:p-4">
+            <div className="p-4 bg-white rounded-xl border-2 border-[#0B1B3F] shadow-sm print:border-4 print:border-black print:p-4">
               {outQrCode ? (
                 <img
                   src={outQrCode}
@@ -147,7 +146,7 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
                   className="w-56 h-56 sm:w-64 sm:h-64 object-contain print:w-80 print:h-80"
                 />
               ) : (
-                <div className="w-56 h-56 flex items-center justify-center text-xs text-red-500 font-semibold">
+                <div className="w-56 h-56 flex items-center justify-center text-xs text-[#EF4444] font-semibold">
                   QR_OUT_SECRET not configured
                 </div>
               )}
@@ -155,7 +154,7 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
 
             {/* One-Line Instruction */}
             <div className="space-y-1 max-w-xs">
-              <p className="text-base sm:text-lg font-bold text-[#0B1B3F] print:text-black print:text-xl">
+              <p className="text-base sm:text-lg font-semibold text-[#0B1B3F] print:text-black print:text-xl">
                 Scan with the Bitnox Attendance app
               </p>
               <p className="text-xs text-[#5E6C87] print:text-black print:text-sm">
@@ -172,12 +171,12 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
       </div>
 
       {/* 4. SCREEN-ONLY ADMIN HELP SECTION */}
-      <Card className="no-print bg-white border border-[#DDE3EE] p-6 rounded-2xl shadow-xs space-y-3">
+      <div className="no-print bg-white border border-[#DDE3EE] p-6 rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] space-y-3">
         <div className="flex items-center gap-2.5 text-[#0B1B3F]">
-          <div className="w-8 h-8 rounded-full bg-[#F1F4FB] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-[8px] bg-[#F1F4FB] flex items-center justify-center">
             <HelpCircle className="w-4 h-4 text-[#0B1B3F]" />
           </div>
-          <h3 className="text-sm font-bold">Managing QR Code Secrets</h3>
+          <h3 className="text-sm font-semibold">Managing QR Code Secrets</h3>
         </div>
 
         <div className="text-xs text-[#5E6C87] leading-relaxed space-y-2 pt-1">
@@ -186,7 +185,7 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
             server&apos;s secrets exactly. Both codes are generated on demand directly from the
             environment variables.
           </p>
-          <div className="p-3.5 rounded-xl bg-[#F8FAFD] border border-[#DDE3EE] space-y-1.5 text-[#0B1B3F]">
+          <div className="p-3.5 rounded-lg bg-[#F1F4FB] border border-[#DDE3EE] space-y-1.5 text-[#0B1B3F]">
             <div className="font-semibold text-xs flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-[#16A34A]" />
               Rotating Secrets Procedure:
@@ -203,7 +202,7 @@ export function AdminQrPrintView({ inQrCode, outQrCode }: AdminQrPrintViewProps)
             * Note: Old printed copies will immediately fail verification as soon as new secrets are deployed.
           </p>
         </div>
-      </Card>
+      </div>
 
       {/* 5. PRINT-SPECIFIC CSS RULES */}
       <style

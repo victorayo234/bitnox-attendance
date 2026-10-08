@@ -1,6 +1,6 @@
 import React from "react";
 
-export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "danger-ghost";
 export type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -15,21 +15,23 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-white hover:bg-[#122654] active:bg-[#08142F] focus-visible:ring-primary shadow-sm",
+    "bg-primary text-white hover:bg-[#122654] active:bg-[#08142F] focus-visible:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]",
   secondary:
-    "bg-soft text-primary hover:bg-[#E5ECF8] active:bg-[#D7E2F2] border border-border focus-visible:ring-primary",
+    "bg-white text-primary border border-border hover:bg-soft active:bg-[#E5ECF8] focus-visible:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]",
   outline:
-    "bg-white text-primary border border-border hover:bg-soft active:bg-[#E5ECF8] focus-visible:ring-primary",
+    "bg-white text-primary border border-border hover:bg-soft active:bg-[#E5ECF8] focus-visible:ring-primary shadow-[0_1px_2px_rgba(11,27,63,0.04)]",
   ghost:
-    "bg-transparent text-muted hover:text-primary hover:bg-soft active:bg-[#E5ECF8] focus-visible:ring-primary",
+    "bg-transparent text-primary hover:bg-soft active:bg-[#E5ECF8] focus-visible:ring-primary",
+  "danger-ghost":
+    "bg-transparent text-absent hover:bg-red-50 active:bg-red-100 focus-visible:ring-absent",
   danger:
-    "bg-absent text-white hover:bg-[#DC2626] active:bg-[#B91C1C] focus-visible:ring-absent shadow-sm",
+    "bg-absent text-white hover:bg-[#DC2626] active:bg-[#B91C1C] focus-visible:ring-absent shadow-xs",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "min-h-[44px] px-4 text-xs tracking-wide",
-  md: "min-h-[44px] h-11 px-6 text-sm tracking-normal",
-  lg: "min-h-[48px] h-12 px-8 text-base tracking-normal",
+  sm: "h-8 px-3 text-[13px] font-medium leading-none",
+  md: "h-10 px-4 text-sm font-medium leading-none",
+  lg: "h-12 px-6 text-base font-medium leading-none",
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -50,7 +52,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const isDisabled = disabled || isLoading;
-    const buttonClasses = `inline-flex items-center justify-center font-semibold rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none ${
+    const buttonClasses = `inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none ${
       variantStyles[variant]
     } ${sizeStyles[size]} ${fullWidth ? "w-full" : ""} ${className}`;
 

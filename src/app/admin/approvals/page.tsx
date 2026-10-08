@@ -26,10 +26,10 @@ export default async function ApprovalsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-primary">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#0B1B3F]">
           Pending Enrollment Approvals
         </h1>
-        <p className="text-xs sm:text-sm text-muted">
+        <p className="text-xs sm:text-sm text-[#5E6C87]">
           Review self-registered students before granting them access to the attendance system.
         </p>
       </div>

@@ -247,30 +247,29 @@ export function ForgotPasswordForm() {
             className="h-9 w-auto object-contain mx-auto"
           />
         </Link>
-        <div className="w-10 h-1 bg-accent rounded-full mt-2 shadow-xs" />
       </div>
 
       {/* Main Card */}
-      <Card className="bg-white shadow-xs">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-soft text-primary">
-            <KeyRound className="h-6 w-6" />
+      <div className="rounded-[12px] bg-white border border-[#DDE3EE] shadow-[0_1px_2px_rgba(11,27,63,0.04)] p-6">
+        <div className="text-center pb-4">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#F1F4FB] text-[#0B1B3F]">
+            <KeyRound className="h-5 w-5" />
           </div>
-          <CardTitle className="text-xl font-bold text-primary">
+          <h1 className="text-xl font-semibold text-[#0B1B3F]">
             Reset Password
-          </CardTitle>
-          <CardDescription className="text-xs">
+          </h1>
+          <p className="text-xs text-[#5E6C87] mt-1">
             {step === 1
               ? "Enter your account email to receive a recovery code"
               : "Verify your code and create a new password"}
-          </CardDescription>
-        </CardHeader>
+          </p>
+        </div>
 
-        <CardContent className="pt-4">
+        <div>
           {/* Error Banner */}
           {errorMessage && (
             <div
-              className="mb-4 flex items-start gap-2.5 rounded-xl border border-absent/30 bg-absent/10 p-3 text-xs text-absent animate-in fade-in-50"
+              className="mb-4 flex items-start gap-2.5 rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/10 p-3 text-xs text-[#EF4444] animate-in fade-in-50"
               role="alert"
             >
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -281,10 +280,10 @@ export function ForgotPasswordForm() {
           {/* Info Banner */}
           {infoMessage && (
             <div
-              className="mb-4 flex items-start gap-2.5 rounded-xl border border-border bg-[#F1F4FB] p-3 text-xs text-muted animate-in fade-in-50"
+              className="mb-4 flex items-start gap-2.5 rounded-lg border border-[#DDE3EE] bg-[#F1F4FB] p-3 text-xs text-[#5E6C87] animate-in fade-in-50"
               role="status"
             >
-              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-[#16A34A]" />
               <p className="leading-relaxed text-[#0B1B3F]">{infoMessage}</p>
             </div>
           )}
@@ -295,12 +294,12 @@ export function ForgotPasswordForm() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="email"
-                  className="block text-xs font-semibold text-primary"
+                  className="block text-[13px] font-medium text-[#5E6C87]"
                 >
-                  Account Email
+                  Account email
                 </label>
                 <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5E6C87]">
                     <Mail className="h-4 w-4" />
                   </div>
                   <input
@@ -311,10 +310,8 @@ export function ForgotPasswordForm() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={
-                      role === "admin" ? "admin@bitnox.qc" : "student@bitnox.qc"
-                    }
-                    className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-4 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="you@example.com"
+                    className="w-full h-11 rounded-lg border border-[#DDE3EE] bg-white pl-10 pr-4 text-sm text-[#0B1B3F] placeholder:text-[#5E6C87]/60 transition-colors focus:border-[#0B1B3F] focus:outline-none focus:ring-2 focus:ring-[#0B1B3F]/20"
                   />
                 </div>
               </div>
@@ -323,10 +320,10 @@ export function ForgotPasswordForm() {
                 <Button
                   type="submit"
                   variant="primary"
-                  size="lg"
+                  size="md"
                   fullWidth
                   isLoading={isSubmitting}
-                  className="py-3 text-sm shadow-sm"
+                  className="h-11 text-sm font-medium"
                 >
                   Send Recovery Code
                 </Button>
@@ -338,10 +335,10 @@ export function ForgotPasswordForm() {
           {step === 2 && (
             <form onSubmit={handleResetPassword} className="space-y-4">
               {/* Header instruction line */}
-              <div className="rounded-xl bg-[#F1F4FB] border border-[#DDE3EE] p-3 space-y-1.5">
+              <div className="rounded-lg bg-[#F1F4FB] border border-[#DDE3EE] p-3 space-y-1.5">
                 <p className="text-xs text-[#0B1B3F] leading-snug">
                   Enter the 6-digit code sent to{" "}
-                  <strong className="text-primary font-semibold">{email}</strong>. It expires in{" "}
+                  <strong className="text-[#0B1B3F] font-semibold">{email}</strong>. It expires in{" "}
                   {OTP_EXPIRY_MINUTES} minutes.
                 </p>
 
@@ -352,11 +349,11 @@ export function ForgotPasswordForm() {
                     Status:
                   </span>
                   {isCodeExpired ? (
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-[#EF4444]">
                       Code expired. Request a new one.
                     </span>
                   ) : (
-                    <span className="font-semibold text-amber-700">
+                    <span className="font-semibold text-[#F59E0B]">
                       Code expires in {formattedCountdown}
                     </span>
                   )}
@@ -367,9 +364,9 @@ export function ForgotPasswordForm() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="code"
-                  className="block text-xs font-semibold text-primary"
+                  className="block text-[13px] font-medium text-[#5E6C87]"
                 >
-                  6-Digit Recovery Code
+                  6-digit recovery code
                 </label>
                 <input
                   id="code"
@@ -384,7 +381,7 @@ export function ForgotPasswordForm() {
                     setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
                   }
                   placeholder="123456"
-                  className="w-full min-h-[44px] rounded-full border border-border bg-white px-4 py-2.5 text-center text-lg font-mono tracking-[0.4em] text-primary placeholder:text-muted/40 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full h-11 rounded-lg border border-[#DDE3EE] bg-white px-4 text-center text-lg font-mono tracking-[0.4em] text-[#0B1B3F] placeholder:text-[#5E6C87]/40 transition-colors focus:border-[#0B1B3F] focus:outline-none focus:ring-2 focus:ring-[#0B1B3F]/20"
                 />
               </div>
 
@@ -392,12 +389,12 @@ export function ForgotPasswordForm() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="newPassword"
-                  className="block text-xs font-semibold text-primary"
+                  className="block text-[13px] font-medium text-[#5E6C87]"
                 >
-                  New Password (min 8 characters)
+                  New password (min 8 characters)
                 </label>
                 <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5E6C87]">
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
@@ -410,12 +407,12 @@ export function ForgotPasswordForm() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-11 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full h-11 rounded-lg border border-[#DDE3EE] bg-white pl-10 pr-11 text-sm text-[#0B1B3F] placeholder:text-[#5E6C87]/60 transition-colors focus:border-[#0B1B3F] focus:outline-none focus:ring-2 focus:ring-[#0B1B3F]/20"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-muted hover:text-primary focus:outline-none"
+                    className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-[#5E6C87] hover:text-[#0B1B3F] focus:outline-none"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -431,12 +428,12 @@ export function ForgotPasswordForm() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-xs font-semibold text-primary"
+                  className="block text-[13px] font-medium text-[#5E6C87]"
                 >
-                  Confirm New Password
+                  Confirm new password
                 </label>
                 <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5E6C87]">
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
@@ -449,12 +446,12 @@ export function ForgotPasswordForm() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full min-h-[44px] rounded-full border border-border bg-white pl-10 pr-11 py-2.5 text-sm text-primary placeholder:text-muted/60 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full h-11 rounded-lg border border-[#DDE3EE] bg-white pl-10 pr-11 text-sm text-[#0B1B3F] placeholder:text-[#5E6C87]/60 transition-colors focus:border-[#0B1B3F] focus:outline-none focus:ring-2 focus:ring-[#0B1B3F]/20"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-muted hover:text-primary focus:outline-none"
+                    className="absolute inset-y-0 right-0 w-11 min-h-[44px] flex items-center justify-center text-[#5E6C87] hover:text-[#0B1B3F] focus:outline-none"
                     aria-label={
                       showConfirmPassword ? "Hide password" : "Show password"
                     }
@@ -473,11 +470,11 @@ export function ForgotPasswordForm() {
                 <Button
                   type="submit"
                   variant="primary"
-                  size="lg"
+                  size="md"
                   fullWidth
                   disabled={isSubmitting || isCodeExpired}
                   isLoading={isSubmitting}
-                  className="py-3 text-sm shadow-sm"
+                  className="h-11 text-sm font-medium"
                 >
                   Update Password
                 </Button>
@@ -489,9 +486,9 @@ export function ForgotPasswordForm() {
                   type="button"
                   onClick={handleResendCode}
                   disabled={resendCooldown > 0 || isSubmitting}
-                  className="inline-flex items-center gap-1 text-xs text-muted hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#5E6C87] hover:text-[#0B1B3F] disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                 >
-                  <RefreshCw className="w-3 h-3" />
+                  <RefreshCw className="w-3.5 h-3.5" />
                   {resendCooldown > 0
                     ? `Resend code (${resendCooldown}s)`
                     : "Resend code"}
@@ -501,17 +498,17 @@ export function ForgotPasswordForm() {
           )}
 
           {/* Back to Login Link */}
-          <div className="mt-5 border-t border-border pt-4 text-center">
+          <div className="mt-5 border-t border-[#DDE3EE] pt-4 text-center">
             <Link
               href={`/login?role=${role}`}
-              className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-primary font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-[#5E6C87] hover:text-[#0B1B3F] font-medium transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Back to Login</span>
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

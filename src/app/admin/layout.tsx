@@ -1,11 +1,7 @@
 import React from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Badge, LogoutButton } from "@/components";
-import { AdminNav } from "@/components/AdminNav";
-import { Shield } from "lucide-react";
+import { AdminHeader } from "@/components/AdminNav";
 
 export default async function AdminLayout({
   children,
@@ -40,8 +36,6 @@ export default async function AdminLayout({
     redirect("/student");
   }
 
-  const firstName = profile.full_name?.trim().split(" ")[0] || "Admin";
-
   // Fetch pending students count for the navigation badge
   const { count: pendingCount } = await supabase
     .from("profiles")
@@ -49,62 +43,22 @@ export default async function AdminLayout({
     .eq("status", "pending");
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between">
-      {/* Mobile-first Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-border shadow-xs">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          {/* Logo & Console Indicator */}
-          <Link href="/admin" className="flex items-center gap-2">
-            <Image
-              src="/images/bitnox-logo.png"
-              alt="Bitnox Attendance"
-              width={120}
-              height={30}
-              priority
-              className="h-7 w-auto object-contain"
-            />
-            <span className="hidden sm:inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-soft text-primary border border-border">
-              Console
-            </span>
-          </Link>
+    <div className="min-h-screen bg-[#F5F8FE] flex flex-col justify-between">
+      {/* Desktop and Mobile Polished Header */}
+      <AdminHeader
+        userName={profile.full_name || "Administrator"}
+        userEmail={user.email || ""}
+        pendingCount={pendingCount || 0}
+      />
 
-          {/* User info & Logout */}
-          <div className="flex items-center gap-3">
-            {/* Student view link for admins (Item 21) */}
-            <Link
-              href="/api/view-mode?mode=student"
-              className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-full border border-border text-muted hover:text-primary hover:bg-slate-50 transition-colors"
-            >
-              Student view
-            </Link>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-primary">
-                {firstName}
-              </span>
-              <Badge variant="primary" className="text-[11px] py-0.5 inline-flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                Admin
-              </Badge>
-            </div>
-            <LogoutButton />
-          </div>
-        </div>
-
-        {/* Admin Navigation Bar */}
-        <div className="border-t border-border/70 bg-white">
-          <AdminNav pendingCount={pendingCount || 0} />
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6">
+      {/* Main Content Area: max-w-6xl for ample room */}
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:pb-12">
         {children}
       </main>
 
       {/* Minimal Footer */}
       <footer className="border-t border-border bg-footer py-4 text-center text-xs text-muted">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           Bitnox Attendance Admin Console • Abeokuta Hub
         </div>
       </footer>

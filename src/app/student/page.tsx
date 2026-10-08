@@ -71,10 +71,10 @@ export default async function StudentPage() {
         <div className="space-y-6 pb-20 md:pb-6">
           {/* Greeting Header */}
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-[#0B1B3F]">
+            <h1 className="text-2xl font-semibold text-primary leading-8">
               Welcome, {firstName}
             </h1>
-            <p className="text-xs text-[#5E6C87]">{lagosDateFormatted}</p>
+            <p className="text-sm text-muted leading-5">{lagosDateFormatted}</p>
           </div>
 
           {/* Today Attendance Card */}
@@ -87,28 +87,16 @@ export default async function StudentPage() {
             isWorkday={isWorkdayToday}
           />
 
-      {/* Quick Link to Weekly History */}
-      <Card className="bg-white hover:bg-[#F8FAFE] transition-colors border border-[#DDE3EE]">
-        <Link
-          href="/student/weekly"
-          className="flex items-center justify-between p-4"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-full bg-[#F1F4FB] text-[#0B1B3F]">
-              <CalendarCheck className="w-5 h-5 text-[#0B1B3F]" />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-[#0B1B3F]">
-                View Weekly Attendance
-              </h4>
-              <p className="text-xs text-[#5E6C87]">
-                Check your weekly punctuality and record breakdown
-              </p>
-            </div>
+          {/* Small text link under status card */}
+          <div className="text-center pt-1">
+            <Link
+              href="/student/weekly"
+              className="text-sm font-medium text-muted hover:text-primary transition-colors inline-flex items-center gap-1.5"
+            >
+              <span>See this week</span>
+              <ChevronRight className="w-4 h-4 text-muted" />
+            </Link>
           </div>
-          <ChevronRight className="w-5 h-5 text-[#5E6C87]" />
-        </Link>
-      </Card>
-    </div>
-  );
+        </div>
+      );
 }

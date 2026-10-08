@@ -60,10 +60,10 @@ export function ApprovalsList({ initialPending }: { initialPending: Profile[] })
     <div className="space-y-4">
       {feedback && (
         <div
-          className={`flex items-start gap-2.5 rounded-xl border p-3.5 text-xs animate-in fade-in-50 ${
+          className={`flex items-start gap-2.5 rounded-lg border p-3.5 text-xs animate-in fade-in-50 ${
             feedback.type === "success"
-              ? "border-present/30 bg-present/10 text-[#15803D]"
-              : "border-absent/30 bg-absent/10 text-absent"
+              ? "border-[#16A34A]/30 bg-[#16A34A]/10 text-[#16A34A]"
+              : "border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444]"
           }`}
         >
           {feedback.type === "success" ? (
@@ -76,17 +76,10 @@ export function ApprovalsList({ initialPending }: { initialPending: Profile[] })
       )}
 
       {students.length === 0 ? (
-        <Card className="bg-white p-8 text-center space-y-3 shadow-xs">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-soft text-muted">
-            <Check className="h-6 w-6 text-present" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-base font-bold text-primary">All Caught Up!</h3>
-            <p className="text-xs text-muted max-w-sm mx-auto">
-              There are currently no student enrollments waiting for review. New self-registrations will show up here.
-            </p>
-          </div>
-        </Card>
+        <div className="rounded-[12px] bg-white border border-[#DDE3EE] p-8 text-center flex flex-col items-center justify-center space-y-2 shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+          <Clock className="w-5 h-5 text-[#5E6C87]" />
+          <p className="text-sm text-[#5E6C87]">No pending student approvals.</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {students.map((student) => {
@@ -100,56 +93,57 @@ export function ApprovalsList({ initialPending }: { initialPending: Profile[] })
               : "Recent";
 
             return (
-              <Card key={student.id} className="bg-white shadow-xs overflow-hidden">
-                <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-primary flex items-center gap-1.5">
-                        <User className="h-4 w-4 text-muted" />
-                        {student.full_name}
-                      </span>
-                      <Badge variant="late" withDot className="text-[10px] py-0.2">
-                        Pending
-                      </Badge>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
-                      <span className="flex items-center gap-1">
-                        <Mail className="h-3.5 w-3.5 text-muted/70" />
-                        {student.email}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-muted/70" />
-                        Registered: {registeredDate}
-                      </span>
-                    </div>
+              <div
+                key={student.id}
+                className="rounded-[12px] bg-white border border-[#DDE3EE] shadow-[0_1px_2px_rgba(11,27,63,0.04)] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm text-[#0B1B3F] flex items-center gap-1.5">
+                      <User className="h-4 w-4 text-[#5E6C87]" />
+                      {student.full_name}
+                    </span>
+                    <Badge variant="late" withDot className="text-[11px]">
+                      Pending
+                    </Badge>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 self-end sm:self-auto pt-2 sm:pt-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isLoading}
-                      onClick={() => handleReject(student.id, student.full_name)}
-                      leftIcon={<X className="h-3.5 w-3.5 text-absent" />}
-                      className="text-absent hover:bg-absent/10 border-border hover:border-absent/30 text-xs"
-                    >
-                      Reject
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      isLoading={isLoading}
-                      onClick={() => handleApprove(student.id, student.full_name)}
-                      leftIcon={<Check className="h-3.5 w-3.5" />}
-                      className="bg-present hover:bg-[#15803D] text-white text-xs shadow-xs"
-                    >
-                      Approve
-                    </Button>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#5E6C87]">
+                    <span className="flex items-center gap-1">
+                      <Mail className="h-3.5 w-3.5 text-[#5E6C87]/70" />
+                      {student.email}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5 text-[#5E6C87]/70" />
+                      Registered: {registeredDate}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 self-end sm:self-auto pt-2 sm:pt-0">
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
+                    disabled={isLoading}
+                    onClick={() => handleReject(student.id, student.full_name)}
+                    className="h-8 text-[13px] px-3"
+                  >
+                    <X className="h-3.5 w-3.5 mr-1" />
+                    Reject
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    isLoading={isLoading}
+                    onClick={() => handleApprove(student.id, student.full_name)}
+                    className="h-8 text-[13px] px-3"
+                  >
+                    <Check className="h-3.5 w-3.5 mr-1" />
+                    Approve
+                  </Button>
+                </div>
+              </div>
             );
           })}
         </div>
