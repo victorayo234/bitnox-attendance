@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
   Search,
@@ -18,10 +17,13 @@ import {
   ShieldAlert,
   ShieldX,
   Shield,
+  ShieldOff,
+  UserX,
+  UserCheck,
+  Loader2,
   ChevronDown,
   ChevronUp,
   Activity,
-  Info,
 } from "lucide-react";
 
 export interface AdminStudentItem {
@@ -368,7 +370,19 @@ export function AdminStudentsDirectory({
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="w-full">
+      {/* Container breakout style for 1200px and above: max-w-7xl with 24px side padding, perfectly centered */}
+      <style>{`
+        @media (min-width: 1200px) {
+          .students-page-container {
+            width: min(calc(100vw - 48px), 80rem) !important;
+            max-width: 80rem !important;
+            margin-left: calc((100% - min(calc(100vw - 48px), 80rem)) / 2) !important;
+            margin-right: calc((100% - min(calc(100vw - 48px), 80rem)) / 2) !important;
+          }
+        }
+      `}</style>
+
       {/* Toast Alert */}
       {toast && (
         <div
@@ -384,558 +398,626 @@ export function AdminStudentsDirectory({
             <AlertTriangle className="w-5 h-5 text-[#EF4444] shrink-0 mt-0.5" />
           )}
           <div className="flex-1 text-xs font-medium leading-relaxed">{toast.message}</div>
-          <button onClick={() => setToast(null)} className="text-[#5E6C87] hover:text-[#0B1B3F]">
+          <button onClick={() => setToast(null)} className="text-[#5E6C87] hover:text-[#0B1B3F] cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Page Header: Title and Add Student Primary Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-primary leading-8">
-            Students
-          </h1>
-          <p className="text-sm text-muted mt-0.5 leading-5">
-            Manage approved student accounts, administrative privileges, and attendance status
-          </p>
-        </div>
-
-        <Button
-          variant="primary"
-          onClick={() => {
-            setCreatedCredentials(null);
-            setShowAddModal(true);
-          }}
-          leftIcon={<UserPlus className="w-4 h-4" />}
-          className="self-start sm:self-auto"
-        >
-          Add student
-        </Button>
-      </div>
-
-      {/* Filter Segmented Control & Search Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Left: Segmented Filter with Muted Count */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="bg-soft p-1 rounded-lg border border-border inline-flex items-center text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveChip("all")}
-              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
-                activeChip === "all"
-                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
-                  : "text-muted hover:text-primary font-medium"
-              }`}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveChip("students")}
-              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
-                activeChip === "students"
-                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
-                  : "text-muted hover:text-primary font-medium"
-              }`}
-            >
+      {/* Responsive Page Container */}
+      <div className="students-page-container w-full space-y-6 pb-20">
+        {/* Page Header: Title and Add Student Primary Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-[#0B1B3F] leading-8">
               Students
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveChip("admins")}
-              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
-                activeChip === "admins"
-                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
-                  : "text-muted hover:text-primary font-medium"
-              }`}
-            >
-              Admins
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveChip("deactivated")}
-              className={`px-3 py-1.5 font-semibold rounded-md transition-all ${
-                activeChip === "deactivated"
-                  ? "bg-white text-primary border border-border shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
-                  : "text-muted hover:text-primary font-medium"
-              }`}
-            >
-              Deactivated
-            </button>
+            </h1>
+            <p className="text-sm text-[#5E6C87] mt-0.5 leading-5">
+              Manage accounts, admin access, and attendance.
+            </p>
           </div>
 
-          <span className="text-xs text-muted">
-            {totalAccounts} accounts · {adminCount} {adminCount === 1 ? "admin" : "admins"}
-          </span>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setCreatedCredentials(null);
+              setShowAddModal(true);
+            }}
+            leftIcon={<UserPlus className="w-4 h-4" />}
+            className="self-start sm:self-auto"
+          >
+            Add student
+          </Button>
         </div>
 
-        {/* Right: Search Box */}
-        <div className="relative flex-1 max-w-xs">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            aria-label="Search by name or email"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-10 pl-9 pr-8 bg-white border border-border rounded-lg text-sm text-primary placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-primary p-0.5"
-              aria-label="Clear search"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
+        {/* Filter Segmented Control & Search Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Left: Segmented Filter with Muted Count */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="bg-[#F1F4FB] p-1 rounded-lg border border-[#DDE3EE] inline-flex items-center text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveChip("all")}
+                className={`px-3 py-1.5 font-semibold rounded-md transition-all cursor-pointer ${
+                  activeChip === "all"
+                    ? "bg-white text-[#0B1B3F] border border-[#DDE3EE] shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                    : "text-[#5E6C87] hover:text-[#0B1B3F] font-medium"
+                }`}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveChip("students")}
+                className={`px-3 py-1.5 font-semibold rounded-md transition-all cursor-pointer ${
+                  activeChip === "students"
+                    ? "bg-white text-[#0B1B3F] border border-[#DDE3EE] shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                    : "text-[#5E6C87] hover:text-[#0B1B3F] font-medium"
+                }`}
+              >
+                Students
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveChip("admins")}
+                className={`px-3 py-1.5 font-semibold rounded-md transition-all cursor-pointer ${
+                  activeChip === "admins"
+                    ? "bg-white text-[#0B1B3F] border border-[#DDE3EE] shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                    : "text-[#5E6C87] hover:text-[#0B1B3F] font-medium"
+                }`}
+              >
+                Admins
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveChip("deactivated")}
+                className={`px-3 py-1.5 font-semibold rounded-md transition-all cursor-pointer ${
+                  activeChip === "deactivated"
+                    ? "bg-white text-[#0B1B3F] border border-[#DDE3EE] shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+                    : "text-[#5E6C87] hover:text-[#0B1B3F] font-medium"
+                }`}
+              >
+                Deactivated
+              </button>
+            </div>
 
-      {/* Desktop Table: 1024px and above (NO horizontal scrollbar) */}
-      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden hidden lg:block">
-        <table className="w-full table-fixed text-left text-sm border-collapse">
-          <colgroup>
-            <col className="w-[31%]" />
-            <col className="w-[12%]" />
-            <col className="w-[12%]" />
-            <col className="w-[16%]" />
-            <col className="w-[29%]" />
-          </colgroup>
-          <thead className="bg-[#FAFCFF] border-b border-border text-xs uppercase tracking-wider text-muted font-semibold sticky top-0 z-10">
-            <tr>
-              <th className="py-3.5 px-5">Account</th>
-              <th className="py-3.5 px-4">Role</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4">Today</th>
-              <th className="py-3.5 px-5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
-            {filteredStudents.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-12 text-center text-sm text-muted">
-                  No accounts matching current filter or search.
-                </td>
+            <span className="text-xs text-[#5E6C87] whitespace-nowrap">
+              {totalAccounts} {totalAccounts === 1 ? "account" : "accounts"} · {adminCount} {adminCount === 1 ? "admin" : "admins"}
+            </span>
+          </div>
+
+          {/* Right: Search Box (320px width on desktop, full width on mobile) */}
+          <div className="relative w-full sm:w-[320px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5E6C87] pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              aria-label="Search by name or email"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-10 pl-9 pr-8 bg-white border border-[#DDE3EE] rounded-lg text-sm text-[#0B1B3F] placeholder:text-[#5E6C87]/70 focus:outline-none focus:ring-2 focus:ring-[#0B1B3F] focus:border-[#0B1B3F] transition-all shadow-[0_1px_2px_rgba(11,27,63,0.04)]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5E6C87] hover:text-[#0B1B3F] p-0.5 cursor-pointer"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Table: 1200px and above (NO horizontal scrollbar) */}
+        <Card className="bg-white border border-[#DDE3EE] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden hidden min-[1200px]:block">
+          <table className="w-full table-fixed text-left text-sm border-collapse">
+            <colgroup>
+              <col style={{ width: "26%" }} />
+              <col style={{ width: "9%" }} />
+              <col style={{ width: "9%" }} />
+              <col style={{ width: "13%" }} />
+              <col style={{ width: "43%", minWidth: "460px" }} />
+            </colgroup>
+            <thead className="bg-[#FAFCFF] border-b border-[#DDE3EE] text-xs uppercase tracking-wider text-[#5E6C87] font-semibold sticky top-0 z-10">
+              <tr className="h-[48px]">
+                <th className="py-3 px-5 align-middle">Account</th>
+                <th className="py-3 px-2.5 align-middle">Role</th>
+                <th className="py-3 px-2.5 align-middle">Status</th>
+                <th className="py-3 px-2.5 align-middle">Today</th>
+                <th className="py-3 pr-5 pl-2 align-middle text-right">Actions</th>
               </tr>
-            ) : (
-              filteredStudents.map((account) => {
-                const isCurrentAdmin = account.id === currentAdminId;
-                const canMakeAdmin = account.role === "student" && account.status === "approved" && account.isActive;
-                const canRemoveAdmin = account.role === "admin" && !isCurrentAdmin;
-                const cannotPromoteReason = !account.isActive || account.status !== "approved";
-                const initials = getInitials(account.name);
-                const joinedText = formatJoinedDate(account.createdAt);
+            </thead>
+            <tbody className="divide-y divide-[#DDE3EE]/60">
+              {filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center text-sm text-[#5E6C87]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Search className="w-6 h-6 text-[#5E6C87]/60" />
+                      <span>No accounts match your filters.</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredStudents.map((account) => {
+                  const isCurrentAdmin = account.id === currentAdminId;
+                  const canMakeAdmin = account.role === "student" && account.status === "approved" && account.isActive;
+                  const canRemoveAdmin = account.role === "admin" && !isCurrentAdmin;
+                  const initials = getInitials(account.name);
+                  const joinedText = formatJoinedDate(account.createdAt);
 
-                return (
-                  <tr
-                    key={account.id}
-                    className="hover:bg-[#F9FBFE] transition-colors"
-                  >
-                    {/* Account Column: 32px circle, name, You tag, email, joined date */}
-                    <td className="py-3.5 px-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0 select-none">
-                          {initials}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <Link
-                              href={`/admin/students/${account.id}`}
-                              className="font-medium text-sm text-primary hover:underline truncate"
-                              title={account.name}
-                            >
-                              {account.name}
-                            </Link>
-                            {isCurrentAdmin && (
-                              <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-soft text-muted border border-border shrink-0">
-                                You
-                              </span>
+                  return (
+                    <tr
+                      key={account.id}
+                      className="h-[76px] hover:bg-[#F9FBFE] transition-colors"
+                    >
+                      {/* Account Column: 36px circle avatar, name, You tag, email, joined date */}
+                      <td className="py-4 px-5 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#E8ECF6] text-[#0B1B3F] font-semibold text-xs flex items-center justify-center shrink-0 select-none">
+                            {initials}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <Link
+                                href={`/admin/students/${account.id}`}
+                                className="font-medium text-[15px] text-[#0B1B3F] hover:underline truncate whitespace-nowrap block"
+                                title={account.name}
+                              >
+                                {account.name}
+                              </Link>
+                              {isCurrentAdmin && (
+                                <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#F1F4FB] text-[#5E6C87] border border-[#DDE3EE] shrink-0 select-none">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[13px] text-[#5E6C87] truncate leading-tight mt-0.5">
+                              {account.email}
+                            </div>
+                            {joinedText && (
+                              <div className="text-[12px] text-[#5E6C87]/70 leading-tight mt-0.5 truncate">
+                                {joinedText}
+                              </div>
                             )}
                           </div>
-                          <div className="text-xs text-muted truncate leading-tight">
-                            {account.email}
-                          </div>
-                          {joinedText && (
-                            <div className="text-[11px] text-muted/70 leading-tight hidden xl:block mt-0.5">
-                              {joinedText}
-                            </div>
-                          )}
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Role Column */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {account.role === "admin" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
-                          <Shield className="w-3 h-3" />
-                          Admin
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-soft text-muted border border-border">
-                          Student
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Status Column: dot + text */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {account.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                          Deactivated
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Today Column: small badge with dot + Late tag */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {renderTodayBadge(account.todayStatus)}
-                    </td>
-
-                    {/* Actions Column: compact buttons visible in single row */}
-                    <td className="py-3.5 px-5 text-right whitespace-nowrap">
-                      <div className="inline-flex items-center justify-end gap-1 flex-nowrap">
-                        {/* 1. History */}
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2.5 text-[13px]"
-                          title="View Attendance History"
-                        >
-                          <Link href={`/admin/students/${account.id}`}>
-                            <History className="w-3.5 h-3.5 mr-1" />
-                            History
-                          </Link>
-                        </Button>
-
-                        {/* 2. Make admin / Remove admin */}
-                        {canMakeAdmin && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              setRoleModalTarget(account);
-                              setTargetRoleAction("admin");
-                              setRoleModalError(null);
-                            }}
-                            className="h-8 px-2.5 text-[13px]"
-                            title="Promote to Administrator"
-                          >
-                            <Shield className="w-3.5 h-3.5 mr-1 text-primary" />
-                            Make admin
-                          </Button>
-                        )}
-
-                        {canRemoveAdmin && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              setRoleModalTarget(account);
-                              setTargetRoleAction("student");
-                              setRoleModalError(null);
-                            }}
-                            className="h-8 px-2.5 text-[13px] border-red-200 text-red-600 hover:bg-red-50"
-                            title="Remove Administrator Access"
-                          >
-                            <ShieldX className="w-3.5 h-3.5 mr-1 text-red-600" />
-                            Remove admin
-                          </Button>
-                        )}
-
-                        {!isCurrentAdmin && cannotPromoteReason && account.role === "student" && (
-                          <span
-                            className="inline-flex items-center text-xs text-muted/60 px-1"
-                            title="Only approved, active students can be promoted."
-                          >
-                            <Info className="w-3.5 h-3.5" />
+                      {/* Role Column: rounded-full badge, nowrap */}
+                      <td className="py-4 px-2.5 align-middle whitespace-nowrap">
+                        {account.role === "admin" ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#E8ECF6] text-[#0B1B3F] whitespace-nowrap">
+                            <Shield className="w-3.5 h-3.5 text-[#0B1B3F]" />
+                            Admin
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#F1F4FB] text-[#5E6C87] border border-[#DDE3EE] whitespace-nowrap">
+                            Student
                           </span>
                         )}
+                      </td>
 
-                        {/* 3. Password */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setResetStudent(account);
-                            setResetNewPass("");
-                            setShowPasswordModal(true);
-                          }}
-                          className="h-8 px-2.5 text-[13px]"
-                          title="Reset Password"
-                        >
-                          <KeyRound className="w-3.5 h-3.5 mr-1" />
-                          Password
-                        </Button>
-
-                        {/* 4. Deactivate / Reactivate */}
-                        {!isCurrentAdmin && (
-                          account.isActive ? (
-                            <Button
-                              variant="danger-ghost"
-                              size="sm"
-                              onClick={() => {
-                                setTargetStudent(account);
-                                setDeactivateError(null);
-                                setShowDeactivateModal(true);
-                              }}
-                              className="h-8 px-2.5 text-[13px]"
-                            >
-                              Deactivate
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => handleToggleActive(account)}
-                              className="h-8 px-2.5 text-[13px] text-[#16A34A] border-emerald-200 hover:bg-emerald-50"
-                            >
-                              Reactivate
-                            </Button>
-                          )
+                      {/* Status Column: 8px dot + text */}
+                      <td className="py-4 px-2.5 align-middle whitespace-nowrap">
+                        {account.isActive ? (
+                          <span className="inline-flex items-center gap-2 text-xs font-medium text-[#0B1B3F] whitespace-nowrap">
+                            <span className="w-2 h-2 rounded-full bg-[#16A34A] shrink-0" />
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2 text-xs font-medium text-[#5E6C87] whitespace-nowrap">
+                            <span className="w-2 h-2 rounded-full bg-[#94A3B8] shrink-0" />
+                            Deactivated
+                          </span>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </Card>
+                      </td>
 
-      {/* Stacked Cards View: Below 1024px (NO actions menu, all 4 buttons visible) */}
-      <div className="lg:hidden space-y-3">
-        {filteredStudents.length === 0 ? (
-          <Card className="bg-white border border-border p-8 text-center text-sm text-muted">
-            No accounts matching current filter or search.
-          </Card>
-        ) : (
-          filteredStudents.map((account) => {
-            const isCurrentAdmin = account.id === currentAdminId;
-            const canMakeAdmin = account.role === "student" && account.status === "approved" && account.isActive;
-            const canRemoveAdmin = account.role === "admin" && !isCurrentAdmin;
-            const initials = getInitials(account.name);
+                      {/* Today Column: small badge with dot + Late tag */}
+                      <td className="py-4 px-2.5 align-middle whitespace-nowrap">
+                        {renderTodayBadge(account.todayStatus)}
+                      </td>
 
-            return (
-              <Card
-                key={account.id}
-                className="bg-white border border-border p-4 rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] space-y-3"
-              >
-                {/* Header: Avatar, Name, Email, Role and Status badges */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0">
+                      {/* Actions Column: 4-slot CSS grid */}
+                      <td className="py-4 pr-5 pl-2 align-middle text-right whitespace-nowrap">
+                        <div
+                          className="grid items-center justify-end"
+                          style={{
+                            gridTemplateColumns: "88px 128px 108px 112px",
+                            columnGap: "8px",
+                            justifyContent: "end",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {/* Slot 1: History (88px) */}
+                          <div className="w-[88px]">
+                            <Link
+                              href={`/admin/students/${account.id}`}
+                              className="h-[36px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#F1F4FB] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2"
+                              title="View Attendance History"
+                            >
+                              <History className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                              <span>History</span>
+                            </Link>
+                          </div>
+
+                          {/* Slot 2: Make admin / Remove admin (128px) */}
+                          <div className="w-[128px]">
+                            {canMakeAdmin ? (
+                              <button
+                                type="button"
+                                disabled={isSubmittingRole}
+                                onClick={() => {
+                                  setRoleModalTarget(account);
+                                  setTargetRoleAction("admin");
+                                  setRoleModalError(null);
+                                }}
+                                className="h-[36px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#E8ECF6] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                title="Promote to Administrator"
+                              >
+                                {isSubmittingRole && roleModalTarget?.id === account.id ? (
+                                  <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#0B1B3F]" />
+                                ) : (
+                                  <Shield className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                                )}
+                                <span>Make admin</span>
+                              </button>
+                            ) : canRemoveAdmin ? (
+                              <button
+                                type="button"
+                                disabled={isSubmittingRole}
+                                onClick={() => {
+                                  setRoleModalTarget(account);
+                                  setTargetRoleAction("student");
+                                  setRoleModalError(null);
+                                }}
+                                className="h-[36px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#E8ECF6] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                title="Remove Administrator Access"
+                              >
+                                {isSubmittingRole && roleModalTarget?.id === account.id ? (
+                                  <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#0B1B3F]" />
+                                ) : (
+                                  <ShieldOff className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                                )}
+                                <span>Remove admin</span>
+                              </button>
+                            ) : null}
+                          </div>
+
+                          {/* Slot 3: Password (108px) */}
+                          <div className="w-[108px]">
+                            <button
+                              type="button"
+                              disabled={isSubmittingReset}
+                              onClick={() => {
+                                setResetStudent(account);
+                                setResetNewPass("");
+                                setShowPasswordModal(true);
+                              }}
+                              className="h-[36px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#F1F4FB] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                              title="Reset Password"
+                            >
+                              {isSubmittingReset && resetStudent?.id === account.id ? (
+                                <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#0B1B3F]" />
+                              ) : (
+                                <KeyRound className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                              )}
+                              <span>Password</span>
+                            </button>
+                          </div>
+
+                          {/* Slot 4: Deactivate / Reactivate (112px) */}
+                          <div className="w-[112px]">
+                            {!isCurrentAdmin ? (
+                              account.isActive ? (
+                                <button
+                                  type="button"
+                                  disabled={isSubmittingToggle}
+                                  onClick={() => {
+                                    setTargetStudent(account);
+                                    setDeactivateError(null);
+                                    setShowDeactivateModal(true);
+                                  }}
+                                  className="h-[36px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#F3C5C5] text-[#DC2626] hover:bg-[#FEF2F2] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                  title="Deactivate Account"
+                                >
+                                  {isSubmittingToggle && targetStudent?.id === account.id ? (
+                                    <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#DC2626]" />
+                                  ) : (
+                                    <UserX className="w-4 h-4 shrink-0 text-[#DC2626]" />
+                                  )}
+                                  <span>Deactivate</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={isSubmittingToggle}
+                                  onClick={() => handleToggleActive(account)}
+                                  className="h-[36px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#BFE6CC] text-[#15803D] hover:bg-[#F0FDF4] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                  title="Reactivate Account"
+                                >
+                                  {isSubmittingToggle && targetStudent?.id === account.id ? (
+                                    <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#15803D]" />
+                                  ) : (
+                                    <UserCheck className="w-4 h-4 shrink-0 text-[#15803D]" />
+                                  )}
+                                  <span>Reactivate</span>
+                                </button>
+                              )
+                            ) : null}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </Card>
+
+        {/* Stacked Cards View: Below 1200px (NO horizontal table scrolling) */}
+        <div className="min-[1200px]:hidden space-y-3">
+          {filteredStudents.length === 0 ? (
+            <Card className="bg-white border border-[#DDE3EE] p-12 text-center text-sm text-[#5E6C87] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)]">
+              <div className="flex flex-col items-center justify-center gap-2">
+                <Search className="w-6 h-6 text-[#5E6C87]/60" />
+                <span>No accounts match your filters.</span>
+              </div>
+            </Card>
+          ) : (
+            filteredStudents.map((account) => {
+              const isCurrentAdmin = account.id === currentAdminId;
+              const canMakeAdmin = account.role === "student" && account.status === "approved" && account.isActive;
+              const canRemoveAdmin = account.role === "admin" && !isCurrentAdmin;
+              const initials = getInitials(account.name);
+              const joinedText = formatJoinedDate(account.createdAt);
+
+              return (
+                <Card
+                  key={account.id}
+                  className="bg-white border border-[#DDE3EE] p-4 sm:p-5 rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] space-y-3"
+                >
+                  {/* Card Top: Avatar, Name with "You" tag, Email, Joined Date */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#E8ECF6] text-[#0B1B3F] font-semibold text-xs flex items-center justify-center shrink-0 select-none">
                       {initials}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <Link
                           href={`/admin/students/${account.id}`}
-                          className="font-medium text-sm text-primary hover:underline truncate"
+                          className="font-medium text-[15px] text-[#0B1B3F] hover:underline truncate"
+                          title={account.name}
                         >
                           {account.name}
                         </Link>
                         {isCurrentAdmin && (
-                          <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-soft text-muted border border-border">
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#F1F4FB] text-[#5E6C87] border border-[#DDE3EE] shrink-0 select-none">
                             You
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-muted truncate">
+                      <div className="text-[13px] text-[#5E6C87] truncate leading-tight mt-0.5">
                         {account.email}
                       </div>
+                      {joinedText && (
+                        <div className="text-[12px] text-[#5E6C87]/70 leading-tight mt-0.5 truncate">
+                          {joinedText}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1 shrink-0">
+                  {/* Badges in a wrapping row: Role badge, status, and today badge */}
+                  <div className="flex items-center gap-2 flex-wrap pt-0.5">
                     {account.role === "admin" ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
-                        <Shield className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#E8ECF6] text-[#0B1B3F] whitespace-nowrap">
+                        <Shield className="w-3.5 h-3.5 text-[#0B1B3F]" />
                         Admin
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-soft text-muted border border-border">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#F1F4FB] text-[#5E6C87] border border-[#DDE3EE] whitespace-nowrap">
                         Student
                       </span>
                     )}
 
                     {account.isActive ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
+                      <span className="inline-flex items-center gap-2 text-xs font-medium text-[#0B1B3F] whitespace-nowrap bg-white px-2.5 py-1 rounded-full border border-[#DDE3EE]">
+                        <span className="w-2 h-2 rounded-full bg-[#16A34A] shrink-0" />
                         Active
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      <span className="inline-flex items-center gap-2 text-xs font-medium text-[#5E6C87] whitespace-nowrap bg-white px-2.5 py-1 rounded-full border border-[#DDE3EE]">
+                        <span className="w-2 h-2 rounded-full bg-[#94A3B8] shrink-0" />
                         Deactivated
                       </span>
                     )}
+
+                    <div>{renderTodayBadge(account.todayStatus)}</div>
                   </div>
-                </div>
 
-                {/* Today status row */}
-                <div className="flex items-center justify-between text-xs py-2 px-3 bg-soft rounded-lg">
-                  <span className="text-muted">Today:</span>
-                  <div>{renderTodayBadge(account.todayStatus)}</div>
-                </div>
+                  {/* Thin divider above buttons */}
+                  <div className="border-t border-[#DDE3EE] pt-3">
+                    {/* 2x2 grid, each at least 44px tall, full width of its half */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Button 1: History */}
+                      <Link
+                        href={`/admin/students/${account.id}`}
+                        className="min-h-[44px] h-[44px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#F1F4FB] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2"
+                        title="View Attendance History"
+                      >
+                        <History className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                        <span>History</span>
+                      </Link>
 
-                {/* Action Buttons: 2x2 grid on phones, each at least 44px tall */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  {/* Button 1: History */}
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="min-h-[44px] justify-center text-xs font-medium border border-border bg-white"
-                  >
-                    <Link href={`/admin/students/${account.id}`}>
-                      <History className="w-4 h-4 mr-1.5 text-muted" />
-                      History
-                    </Link>
-                  </Button>
-
-                  {/* Button 2: Password */}
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setResetStudent(account);
-                      setResetNewPass("");
-                      setShowPasswordModal(true);
-                    }}
-                    className="min-h-[44px] justify-center text-xs font-medium border border-border bg-white"
-                  >
-                    <KeyRound className="w-4 h-4 mr-1.5 text-muted" />
-                    Password
-                  </Button>
-
-                  {/* Button 3: Make admin / Remove admin */}
-                  {canMakeAdmin && (
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        setRoleModalTarget(account);
-                        setTargetRoleAction("admin");
-                        setRoleModalError(null);
-                      }}
-                      className="min-h-[44px] justify-center text-xs font-medium"
-                    >
-                      <Shield className="w-4 h-4 mr-1.5 text-primary" />
-                      Make admin
-                    </Button>
-                  )}
-
-                  {canRemoveAdmin && (
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        setRoleModalTarget(account);
-                        setTargetRoleAction("student");
-                        setRoleModalError(null);
-                      }}
-                      className="min-h-[44px] justify-center text-xs font-medium border-red-200 text-red-600"
-                    >
-                      <ShieldX className="w-4 h-4 mr-1.5" />
-                      Remove admin
-                    </Button>
-                  )}
-
-                  {/* Button 4: Deactivate / Reactivate */}
-                  {!isCurrentAdmin && (
-                    account.isActive ? (
-                      <Button
-                        variant="danger-ghost"
+                      {/* Button 2: Password */}
+                      <button
+                        type="button"
+                        disabled={isSubmittingReset}
                         onClick={() => {
-                          setTargetStudent(account);
-                          setDeactivateError(null);
-                          setShowDeactivateModal(true);
+                          setResetStudent(account);
+                          setResetNewPass("");
+                          setShowPasswordModal(true);
                         }}
-                        className="min-h-[44px] justify-center text-xs font-medium border border-red-200/60"
+                        className="min-h-[44px] h-[44px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#F1F4FB] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        title="Reset Password"
                       >
-                        Deactivate
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="secondary"
-                        onClick={() => handleToggleActive(account)}
-                        className="min-h-[44px] justify-center text-xs font-medium text-[#16A34A] border-emerald-200"
-                      >
-                        Reactivate
-                      </Button>
-                    )
-                  )}
-                </div>
-              </Card>
-            );
-          })
-        )}
-      </div>
+                        {isSubmittingReset && resetStudent?.id === account.id ? (
+                          <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#0B1B3F]" />
+                        ) : (
+                          <KeyRound className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                        )}
+                        <span>Password</span>
+                      </button>
 
-      {/* Admin activity audit section: Collapsed card with chevron */}
-      <Card className="bg-white border border-border rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowActivity(!showActivity)}
-          className="w-full min-h-[48px] px-5 py-3.5 flex items-center justify-between text-left hover:bg-soft transition-colors cursor-pointer"
-        >
-          <div className="flex items-center gap-2.5">
-            <Activity className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-primary">Admin activity</span>
-            <span className="text-xs text-muted">
-              {roleActivity.length} {roleActivity.length === 1 ? "entry" : "entries"}
-            </span>
-          </div>
-          {showActivity ? (
-            <ChevronUp className="w-4 h-4 text-muted" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-muted" />
-          )}
-        </button>
+                      {/* Button 3: Make admin / Remove admin (omitted if hidden) */}
+                      {canMakeAdmin && (
+                        <button
+                          type="button"
+                          disabled={isSubmittingRole}
+                          onClick={() => {
+                            setRoleModalTarget(account);
+                            setTargetRoleAction("admin");
+                            setRoleModalError(null);
+                          }}
+                          className="min-h-[44px] h-[44px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#E8ECF6] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                          title="Promote to Administrator"
+                        >
+                          {isSubmittingRole && roleModalTarget?.id === account.id ? (
+                            <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#0B1B3F]" />
+                          ) : (
+                            <Shield className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                          )}
+                          <span>Make admin</span>
+                        </button>
+                      )}
 
-        {showActivity && (
-          <CardContent className="p-0 border-t border-border">
-            {roleActivity.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted">
-                No role changes recorded yet.
-              </div>
-            ) : (
-              <div className="divide-y divide-border/60 max-h-96 overflow-y-auto">
-                {roleActivity.map((act) => (
-                  <div
-                    key={act.id}
-                    className="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs hover:bg-[#FAFCFF]"
-                  >
-                    <div className="space-y-0.5">
-                      <div className="font-medium text-primary flex items-center gap-1.5 flex-wrap">
-                        <span>{act.actorName}</span>
-                        <span className="text-muted font-normal">
-                          {act.newRole === "admin" ? "made" : "removed"}
-                        </span>
-                        <span className="font-semibold">{act.targetName}</span>
-                        <span className="text-muted font-normal">
-                          {act.newRole === "admin" ? "an admin" : "as admin"}
-                        </span>
-                      </div>
+                      {canRemoveAdmin && (
+                        <button
+                          type="button"
+                          disabled={isSubmittingRole}
+                          onClick={() => {
+                            setRoleModalTarget(account);
+                            setTargetRoleAction("student");
+                            setRoleModalError(null);
+                          }}
+                          className="min-h-[44px] h-[44px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#DDE3EE] text-[#0B1B3F] hover:bg-[#E8ECF6] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                          title="Remove Administrator Access"
+                        >
+                          {isSubmittingRole && roleModalTarget?.id === account.id ? (
+                            <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#0B1B3F]" />
+                          ) : (
+                            <ShieldOff className="w-4 h-4 shrink-0 text-[#0B1B3F]" />
+                          )}
+                          <span>Remove admin</span>
+                        </button>
+                      )}
+
+                      {/* Button 4: Deactivate / Reactivate (omitted if hidden) */}
+                      {!isCurrentAdmin && (
+                        account.isActive ? (
+                          <button
+                            type="button"
+                            disabled={isSubmittingToggle}
+                            onClick={() => {
+                              setTargetStudent(account);
+                              setDeactivateError(null);
+                              setShowDeactivateModal(true);
+                            }}
+                            className="min-h-[44px] h-[44px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#F3C5C5] text-[#DC2626] hover:bg-[#FEF2F2] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            title="Deactivate Account"
+                          >
+                            {isSubmittingToggle && targetStudent?.id === account.id ? (
+                              <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#DC2626]" />
+                            ) : (
+                              <UserX className="w-4 h-4 shrink-0 text-[#DC2626]" />
+                            )}
+                            <span>Deactivate</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={isSubmittingToggle}
+                            onClick={() => handleToggleActive(account)}
+                            className="min-h-[44px] h-[44px] px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1.5 w-full bg-white border border-[#BFE6CC] text-[#15803D] hover:bg-[#F0FDF4] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1B3F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            title="Reactivate Account"
+                          >
+                            {isSubmittingToggle && targetStudent?.id === account.id ? (
+                              <Loader2 className="w-4 h-4 shrink-0 animate-spin text-[#15803D]" />
+                            ) : (
+                              <UserCheck className="w-4 h-4 shrink-0 text-[#15803D]" />
+                            )}
+                            <span>Reactivate</span>
+                          </button>
+                        )
+                      )}
                     </div>
-                    <span className="text-xs text-muted shrink-0">
-                      {act.createdAt}
-                    </span>
                   </div>
-                ))}
-              </div>
+                </Card>
+              );
+            })
+          )}
+        </div>
+
+        {/* Admin activity audit section: Collapsed card with chevron */}
+        <Card className="bg-white border border-[#DDE3EE] rounded-[12px] shadow-[0_1px_2px_rgba(11,27,63,0.04)] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowActivity(!showActivity)}
+            className="w-full min-h-[48px] px-5 py-3.5 flex items-center justify-between text-left hover:bg-[#F1F4FB] transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <Activity className="w-4 h-4 text-[#0B1B3F]" />
+              <span className="text-sm font-semibold text-[#0B1B3F]">Admin activity</span>
+              <span className="text-xs text-[#5E6C87]">
+                {roleActivity.length} {roleActivity.length === 1 ? "entry" : "entries"}
+              </span>
+            </div>
+            {showActivity ? (
+              <ChevronUp className="w-4 h-4 text-[#5E6C87]" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-[#5E6C87]" />
             )}
-          </CardContent>
-        )}
-      </Card>
+          </button>
+
+          {showActivity && (
+            <CardContent className="p-0 border-t border-[#DDE3EE]">
+              {roleActivity.length === 0 ? (
+                <div className="p-6 text-center text-xs text-[#5E6C87]">
+                  No role changes recorded yet.
+                </div>
+              ) : (
+                <div className="divide-y divide-[#DDE3EE]/60 max-h-96 overflow-y-auto">
+                  {roleActivity.map((act) => (
+                    <div
+                      key={act.id}
+                      className="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs hover:bg-[#FAFCFF]"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="font-medium text-[#0B1B3F] flex items-center gap-1.5 flex-wrap">
+                          <span>{act.actorName}</span>
+                          <span className="text-[#5E6C87] font-normal">
+                            {act.newRole === "admin" ? "made" : "removed"}
+                          </span>
+                          <span className="font-semibold">{act.targetName}</span>
+                          <span className="text-[#5E6C87] font-normal">
+                            {act.newRole === "admin" ? "an admin" : "as admin"}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-[#5E6C87] shrink-0">
+                        {act.createdAt}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      </div>
 
       {/* MAKE ADMIN CONFIRMATION DIALOG */}
       {roleModalTarget && targetRoleAction === "admin" && (
@@ -1384,39 +1466,51 @@ function renderTodayBadge(status: string) {
   switch (status) {
     case "Present":
       return (
-        <Badge variant="present" withDot>
-          Present
-        </Badge>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0] whitespace-nowrap select-none">
+          <span className="w-2 h-2 rounded-full bg-[#16A34A] shrink-0" />
+          <span>Checked in</span>
+        </span>
       );
     case "Late":
       return (
-        <span className="inline-flex items-center gap-1.5">
-          <Badge variant="late" withDot>
-            Present
-          </Badge>
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-late border border-amber-200">
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap select-none">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0]">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] shrink-0" />
+            <span>Checked in</span>
+          </span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A]">
             Late
           </span>
         </span>
       );
     case "Checked out":
       return (
-        <Badge variant="primary" withDot>
-          Checked out
-        </Badge>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#E8ECF6] text-[#0B1B3F] border border-[#CBD5E1] whitespace-nowrap select-none">
+          <span className="w-2 h-2 rounded-full bg-[#0B1B3F] shrink-0" />
+          <span>Checked out</span>
+        </span>
       );
     case "Absent":
       return (
-        <Badge variant="absent" withDot>
-          Absent
-        </Badge>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA] whitespace-nowrap select-none">
+          <span className="w-2 h-2 rounded-full bg-[#DC2626] shrink-0" />
+          <span>Absent</span>
+        </span>
+      );
+    case "Off":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#F1F4FB] text-[#5E6C87] border border-[#DDE3EE] whitespace-nowrap select-none">
+          <span className="w-2 h-2 rounded-full bg-[#94A3B8] shrink-0" />
+          <span>Off</span>
+        </span>
       );
     case "Not yet in":
     default:
       return (
-        <Badge variant="neutral" withDot>
-          Not yet in
-        </Badge>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#F1F4FB] text-[#5E6C87] border border-[#DDE3EE] whitespace-nowrap select-none">
+          <span className="w-2 h-2 rounded-full bg-[#94A3B8] shrink-0" />
+          <span>Not yet in</span>
+        </span>
       );
   }
 }
